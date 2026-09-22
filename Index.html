@@ -3,741 +3,3549 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<meta name="theme-color" content="#0a0a0f">
-<title>ScanForge — Open-Source Document Suite</title>
-<!-- PDF Engine (pdf-lib) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
-<!-- File download helper -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-<!-- OpenCV.js — required by jscanify -->
-<script async src="https://docs.opencv.org/4.8.0/opencv.js"></script>
-<!-- jscanify — document edge detection & perspective correction -->
-<script src="https://cdn.jsdelivr.net/gh/puffinsoft/jscanify@master/src/jscanify.min.js"></script>
-<!-- Tesseract.js — OCR engine (100+ languages) -->
-<script src="https://unpkg.com/tesseract.js@v6.0.0/dist/tesseract.min.js"></script>
-<!-- jsQR — pure JS QR code reader -->
+<meta name="theme-color" content="#08080e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>BizSuite Max — Complete Business OS</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf@2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable@3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 <style>
-:root{
-  --bg:#0a0a0f;--surface:#13131a;--surface2:#1c1c26;--surface3:#252533;
-  --text:#f0f0f5;--text2:#8b8b9e;--text3:#55556a;
-  --accent:#6366f1;--accent2:#818cf8;--accent-glow:rgba(99,102,241,.35);
-  --green:#22c55e;--red:#ef4444;--amber:#f59e0b;--cyan:#06b6d4;--pink:#ec4899;
-  --radius:16px;--radius-sm:10px;
-  --font:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-  --mono:'SF Mono','Fira Code',monospace;
+:root {
+  --bg: #08080e; --s1: #111118; --s2: #191922; --s3: #22222e;
+  --txt: #f2f2f7; --txt2: #85859a; --txt3: #45455a;
+  --a: #6366f1; --a2: #818cf8; --g: #22c55e; --r: #ef4444;
+  --am: #f59e0b; --c: #06b6d4; --pk: #ec4899; --pp: #a855f7;
+  --rad: 14px; --rs: 9px;
+  --f: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --m: 'SF Mono', 'Fira Code', monospace;
 }
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html{font-size:16px}
-body{
-  font-family:var(--font);background:var(--bg);color:var(--text);
-  min-height:100dvh;overflow-x:hidden;padding-bottom:40px;
-  background-image:radial-gradient(ellipse 80% 50% at 50% -20%,rgba(99,102,241,.12),transparent);
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html { font-size: 16px; }
+body {
+  font-family: var(--f); background: var(--bg); color: var(--txt);
+  min-height: 100dvh; overflow-x: hidden; padding-bottom: 72px;
+  background-image: radial-gradient(ellipse 80% 40% at 50% -10%, rgba(99,102,241,.1), transparent);
 }
-.app{width:100%;max-width:720px;margin:0 auto;padding:0 16px}
-
-/* Header */
-.hdr{text-align:center;padding:36px 0 20px;position:relative}
-.hdr-logo{
-  font-size:40px;display:block;margin-bottom:8px;
-  filter:drop-shadow(0 0 20px var(--accent-glow));
+.app { width: 100%; max-width: 900px; margin: 0 auto; padding: 0 12px; }
+.hdr { padding: 16px 0 8px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.hdr h1 {
+  font-size: 19px; font-weight: 800; letter-spacing: -.8px;
+  background: linear-gradient(135deg, #c7d2fe, #6366f1, #ec4899);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
 }
-.hdr h1{
-  font-size:28px;font-weight:800;letter-spacing:-1px;
-  background:linear-gradient(135deg,#c7d2fe,#6366f1,#ec4899);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  background-clip:text;
+.hdr p { font-size: 9.5px; color: var(--txt2); margin-top: 1px; }
+.hbtns { display: flex; gap: 5px; }
+.hb {
+  width: 32px; height: 32px; border-radius: 50%; background: var(--s1);
+  border: 1px solid rgba(255,255,255,.06); display: flex; align-items: center;
+  justify-content: center; cursor: pointer; font-size: 14px; transition: .15s;
 }
-.hdr p{font-size:13px;color:var(--text2);margin-top:4px;letter-spacing:.2px}
-.oss-badge{
-  display:inline-flex;align-items:center;gap:5px;
-  margin-top:10px;padding:4px 12px;border-radius:20px;
-  background:linear-gradient(135deg,rgba(34,197,94,.15),rgba(6,182,212,.15));
-  border:1px solid rgba(34,197,94,.3);
-  font-size:10px;font-weight:700;color:var(--green);
-  letter-spacing:.8px;text-transform:uppercase;
+.hb:hover { background: var(--s2); }
+.status {
+  padding: 7px 11px; border-radius: var(--rs); background: var(--s1);
+  border: 1px solid rgba(255,255,255,.05); font-size: 11px; color: var(--txt2);
+  text-align: center; margin-bottom: 7px; min-height: 34px;
+  display: flex; align-items: center; justify-content: center; gap: 5px;
 }
-
-/* Status */
-.status{
-  display:flex;align-items:center;justify-content:center;gap:8px;
-  padding:12px 16px;border-radius:var(--radius-sm);
-  background:var(--surface);border:1px solid rgba(255,255,255,.06);
-  font-size:13px;color:var(--text2);min-height:46px;
-  margin-bottom:16px;transition:all .3s;
+.status.ok { color: var(--g); border-color: rgba(34,197,94,.3); }
+.status.err { color: var(--r); border-color: rgba(239,68,68,.3); }
+.status.load { color: var(--a2); border-color: rgba(99,102,241,.3); }
+.spin { width: 10px; height: 10px; border: 2px solid rgba(255,255,255,.15); border-top-color: var(--a2); border-radius: 50%; animation: sp .5s linear infinite; }
+@keyframes sp { to { transform: rotate(360deg); } }
+.tabs { display: flex; gap: 3px; overflow-x: auto; padding-bottom: 7px; scrollbar-width: none; }
+.tabs::-webkit-scrollbar { display: none; }
+.tab {
+  flex-shrink: 0; padding: 6px 13px; border-radius: 16px; font-size: 10.5px;
+  font-weight: 700; background: var(--s1); color: var(--txt2); cursor: pointer;
+  border: 1px solid transparent; transition: .15s; white-space: nowrap;
 }
-.status.ok{color:var(--green);border-color:rgba(34,197,94,.3);background:rgba(34,197,94,.06)}
-.status.err{color:var(--red);border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.06)}
-.status.load{color:var(--accent2);border-color:rgba(99,102,241,.3);background:rgba(99,102,241,.06)}
-.status.warn{color:var(--amber);border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.06)}
-.spin{width:14px;height:14px;border:2px solid rgba(255,255,255,.15);border-top-color:var(--accent2);border-radius:50%;animation:spin .55s linear infinite;flex-shrink:0}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-/* Section */
-.sec{font-size:10px;font-weight:800;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;margin:22px 0 10px;padding-left:4px}
-
-/* Grid */
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px}
-.tool{
-  background:var(--surface);border-radius:var(--radius);
-  padding:18px 14px;display:flex;flex-direction:column;
-  align-items:flex-start;cursor:pointer;position:relative;
-  border:1px solid rgba(255,255,255,.05);overflow:hidden;
-  transition:transform .18s,background .18s,border-color .18s;
-  user-select:none;
+.tab.on { background: var(--a); color: #fff; }
+.tab:hover:not(.on) { background: var(--s2); }
+.sec {
+  font-size: 9px; font-weight: 800; color: var(--txt3); letter-spacing: 1.2px;
+  text-transform: uppercase; margin: 13px 0 5px; padding-left: 2px;
 }
-.tool::before{
-  content:'';position:absolute;inset:0;opacity:0;
-  background:linear-gradient(135deg,rgba(99,102,241,.08),transparent 60%);
-  transition:opacity .18s;
+.kpis { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-bottom: 9px; }
+.kpi { background: var(--s1); border-radius: var(--rad); padding: 11px; border: 1px solid rgba(255,255,255,.05); }
+.kpi .kl { font-size: 8.5px; color: var(--txt3); text-transform: uppercase; letter-spacing: .7px; font-weight: 800; }
+.kpi .kv { font-size: 17px; font-weight: 800; margin-top: 2px; letter-spacing: -.4px; }
+.kpi .kd { font-size: 8.5px; color: var(--txt2); margin-top: 1px; }
+.kpi.g .kv { color: var(--g); } .kpi.r .kv { color: var(--r); }
+.kpi.a .kv { color: var(--am); } .kpi.c .kv { color: var(--c); }
+.kpi.p .kv { color: var(--pp); } .kpi.pk .kv { color: var(--pk); }
+.card { background: var(--s1); border-radius: var(--rad); padding: 13px; border: 1px solid rgba(255,255,255,.05); margin-bottom: 8px; }
+.card h3 { font-size: 12.5px; font-weight: 700; margin-bottom: 7px; display: flex; align-items: center; gap: 5px; }
+.card .sub { font-size: 10px; color: var(--txt2); margin-bottom: 7px; line-height: 1.5; }
+.fg { margin-bottom: 7px; }
+.fg label { display: block; font-size: 9.5px; font-weight: 800; color: var(--txt2); margin-bottom: 2px; text-transform: uppercase; letter-spacing: .4px; }
+.fg input, .fg select, .fg textarea {
+  width: 100%; padding: 9px 11px; border-radius: var(--rs);
+  border: 1px solid rgba(255,255,255,.1); background: rgba(0,0,0,.35);
+  color: var(--txt); font-size: 12px; font-family: var(--f); outline: none;
 }
-.tool:hover,.tool:active{transform:translateY(-2px);background:var(--surface2);border-color:rgba(255,255,255,.1)}
-.tool:hover::before,.tool:active::before{opacity:1}
-.tool .ico{font-size:26px;margin-bottom:10px;display:block}
-.tool .name{font-size:13px;font-weight:700;line-height:1.25;position:relative;z-index:1}
-.tool .desc{font-size:10.5px;color:var(--text3);margin-top:3px;line-height:1.3;position:relative;z-index:1}
-.tag{
-  position:absolute;top:8px;right:8px;font-size:8px;font-weight:800;
-  padding:2px 7px;border-radius:6px;letter-spacing:.4px;text-transform:uppercase;
-}
-.tag.new{background:rgba(34,197,94,.2);color:var(--green);border:1px solid rgba(34,197,94,.3)}
-.tag.pro{background:rgba(236,72,153,.2);color:var(--pink);border:1px solid rgba(236,72,153,.3)}
-.tag.ai{background:rgba(6,182,212,.2);color:var(--cyan);border:1px solid rgba(6,182,212,.3)}
-
-/* Modal */
-.overlay{
-  position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.8);
-  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
-  display:none;align-items:center;justify-content:center;padding:16px;
-}
-.overlay.on{display:flex}
-.modal{
-  background:var(--surface);border-radius:20px;padding:24px;
-  width:100%;max-width:460px;max-height:88dvh;overflow-y:auto;
-  border:1px solid rgba(255,255,255,.08);
-  box-shadow:0 24px 80px rgba(0,0,0,.6);
-  animation:pop .22s ease-out;
-}
-@keyframes pop{from{opacity:0;transform:scale(.95) translateY(10px)}to{opacity:1;transform:none}}
-.modal h3{font-size:17px;font-weight:800;margin-bottom:6px;display:flex;align-items:center;gap:8px}
-.modal .sub{font-size:12px;color:var(--text2);margin-bottom:16px;line-height:1.5}
-.modal input,.modal select,.modal textarea{
-  width:100%;padding:13px 15px;border-radius:var(--radius-sm);
-  border:1px solid rgba(255,255,255,.1);background:rgba(0,0,0,.35);
-  color:var(--text);font-size:14px;font-family:var(--font);
-  outline:none;margin-bottom:10px;transition:border-color .15s;
-}
-.modal input:focus,.modal select:focus,.modal textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
-.modal textarea{min-height:100px;resize:vertical;font-family:var(--mono);font-size:12.5px;line-height:1.55}
-.modal select{cursor:pointer}
-.acts{display:flex;gap:8px;margin-top:6px}
-.acts button{
-  flex:1;padding:13px;border-radius:var(--radius-sm);border:none;
-  font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font);
-  transition:all .15s;letter-spacing:.2px;
-}
-.btn-p{background:var(--accent);color:#fff}
-.btn-p:hover{background:var(--accent2)}
-.btn-s{background:rgba(255,255,255,.07);color:var(--text)}
-.btn-s:hover{background:rgba(255,255,255,.12)}
-.btn-g{background:var(--green);color:#fff}
-.btn-r{background:var(--red);color:#fff}
-.btn-wide{flex:1!important}
-
-/* Preview */
-.preview-wrap{position:relative;width:100%;border-radius:14px;overflow:hidden;background:#000;margin-bottom:12px}
-.preview-wrap video,.preview-wrap canvas{width:100%;display:block;border-radius:14px}
-.preview-wrap canvas.ov{position:absolute;top:0;left:0;border-radius:0}
-.preview-wrap img{width:100%;display:block;border-radius:14px}
-
-/* Chips */
-.chips{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
-.chip{
-  padding:7px 14px;border-radius:20px;font-size:11px;font-weight:700;
-  background:rgba(255,255,255,.06);color:var(--text2);cursor:pointer;
-  border:1.5px solid transparent;transition:all .15s;
-}
-.chip:hover{background:rgba(255,255,255,.1)}
-.chip.on{background:var(--accent);color:#fff;border-color:var(--accent)}
-
-/* File list */
-.flist{max-height:180px;overflow-y:auto;margin-bottom:10px}
-.fitem{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:10px 13px;background:rgba(0,0,0,.25);border-radius:9px;
-  margin-bottom:5px;font-size:12.5px;gap:8px;
-}
-.fitem span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.fitem .rm{color:var(--red);cursor:pointer;font-size:16px;padding:0 4px;flex-shrink:0;font-weight:700}
-.fitem .rm:hover{opacity:.7}
-
-/* OCR output */
-.ocr-box{
-  background:rgba(0,0,0,.3);border-radius:10px;padding:14px;
-  font-size:12.5px;line-height:1.7;max-height:240px;overflow-y:auto;
-  white-space:pre-wrap;word-break:break-word;font-family:var(--mono);
-  border:1px solid rgba(255,255,255,.07);color:#d4d4e0;
-}
-/* Signature */
-#sigPad{width:100%;height:180px;border-radius:12px;background:#fff;touch-action:none;margin-bottom:10px;cursor:crosshair}
-/* QR */
-#qrBox{font-size:13px;color:var(--green);text-align:center;padding:8px;word-break:break-all;min-height:24px}
-/* Footer */
-.foot{text-align:center;font-size:10.5px;color:var(--text3);margin-top:32px;padding:16px 0;line-height:1.8}
-.foot a{color:var(--text2);text-decoration:none}
-.hidden{display:none!important}
-@media(max-width:440px){
-  .grid{grid-template-columns:repeat(2,1fr);gap:8px}
-  .hdr h1{font-size:23px}
-  .tool{padding:14px 12px}
-  .tool .ico{font-size:22px;margin-bottom:7px}
-  .tool .name{font-size:12px}
-  .modal{padding:20px;border-radius:16px}
+.fg input:focus, .fg select:focus, .fg textarea:focus { border-color: var(--a); box-shadow: 0 0 0 3px rgba(99,102,241,.3); }
+.fg textarea { min-height: 50px; resize: vertical; }
+.fg2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.fg3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+.btn { padding: 9px 14px; border-radius: var(--rs); border: none; font-size: 11.5px; font-weight: 700; cursor: pointer; font-family: var(--f); transition: .15s; }
+.btn-p { background: var(--a); color: #fff; } .btn-p:hover { background: var(--a2); }
+.btn-g { background: var(--g); color: #fff; } .btn-r { background: var(--r); color: #fff; }
+.btn-s { background: rgba(255,255,255,.07); color: var(--txt); } .btn-s:hover { background: rgba(255,255,255,.12); }
+.btn-sm { padding: 5px 9px; font-size: 10px; } .btn-full { width: 100%; }
+.acts { display: flex; gap: 5px; margin-top: 4px; } .acts .btn { flex: 1; }
+.tbl { width: 100%; border-collapse: collapse; font-size: 11px; }
+.tbl th { text-align: left; padding: 6px 7px; font-size: 8.5px; font-weight: 800; color: var(--txt3); text-transform: uppercase; letter-spacing: .7px; border-bottom: 1px solid rgba(255,255,255,.06); }
+.tbl td { padding: 7px 7px; border-bottom: 1px solid rgba(255,255,255,.04); vertical-align: middle; }
+.tbl tr:hover td { background: rgba(255,255,255,.02); }
+.tbl .num { text-align: right; font-family: var(--m); font-size: 10.5px; }
+.tag { display: inline-block; padding: 2px 6px; border-radius: 5px; font-size: 8px; font-weight: 800; letter-spacing: .3px; }
+.tag-paid { background: rgba(34,197,94,.15); color: var(--g); }
+.tag-unpaid { background: rgba(239,68,68,.15); color: var(--r); }
+.tag-partial { background: rgba(245,158,11,.15); color: var(--am); }
+.tag-draft { background: rgba(139,139,158,.15); color: var(--txt2); }
+.tag-sent { background: rgba(6,182,212,.15); color: var(--c); }
+.empty { text-align: center; padding: 20px 7px; color: var(--txt3); font-size: 11px; }
+.ov { position: fixed; inset: 0; z-index: 999; background: rgba(0,0,0,.82); backdrop-filter: blur(12px); display: none; align-items: center; justify-content: center; padding: 11px; }
+.ov.on { display: flex; }
+.modal { background: var(--s1); border-radius: 17px; padding: 18px; width: 100%; max-width: 560px; max-height: 88dvh; overflow-y: auto; border: 1px solid rgba(255,255,255,.08); box-shadow: 0 20px 70px rgba(0,0,0,.6); }
+.modal h3 { font-size: 14px; font-weight: 800; margin-bottom: 10px; }
+.modal .close { float: right; cursor: pointer; color: var(--txt2); font-size: 17px; line-height: 1; }
+.toast { position: fixed; bottom: 78px; left: 50%; transform: translateX(-50%); background: var(--s2); color: var(--txt); padding: 8px 16px; border-radius: 16px; font-size: 11px; font-weight: 600; z-index: 9999; border: 1px solid rgba(255,255,255,.1); opacity: 0; transition: opacity .3s; pointer-events: none; max-width: 90vw; text-align: center; }
+.toast.on { opacity: 1; }
+.bnav { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(17,17,24,.96); backdrop-filter: blur(18px); border-top: 1px solid rgba(255,255,255,.06); display: flex; justify-content: space-around; padding: 5px 0 11px; z-index: 100; }
+.bni { display: flex; flex-direction: column; align-items: center; gap: 1px; cursor: pointer; padding: 3px 5px; border-radius: 7px; transition: .15s; flex: 1; max-width: 68px; }
+.bni .bi { font-size: 16px; } .bni .bl { font-size: 8px; font-weight: 700; color: var(--txt3); letter-spacing: .2px; }
+.bni.on .bl { color: var(--a2); } .bni:hover { background: rgba(255,255,255,.04); }
+.chart-wrap { position: relative; height: 170px; margin: 7px 0; }
+.inv-preview { background: #fff; color: #111; padding: 14px; border-radius: 7px; font-size: 10px; line-height: 1.6; }
+.inv-preview h2 { font-size: 14px; margin-bottom: 2px; }
+.inv-preview table { width: 100%; border-collapse: collapse; margin-top: 7px; }
+.inv-preview th, .inv-preview td { padding: 4px 5px; border: 1px solid #ddd; text-align: left; font-size: 9px; }
+.inv-preview th { background: #f5f5f5; font-weight: 700; }
+.scroll-list { max-height: 260px; overflow-y: auto; }
+.hidden { display: none !important; }
+.thermal { font-family: var(--m); background: #fff; color: #000; padding: 9px; border-radius: 4px; font-size: 9.5px; line-height: 1.4; max-width: 280px; margin: 0 auto; }
+.thermal hr { border: none; border-top: 1px dashed #999; margin: 3px 0; }
+.scan-area { position: relative; width: 100%; border-radius: 11px; overflow: hidden; background: #000; }
+.scan-area video { width: 100%; display: block; border-radius: 11px; }
+.progress-bar { height: 5px; background: rgba(255,255,255,.06); border-radius: 3px; overflow: hidden; margin-top: 5px; }
+.progress-fill { height: 100%; border-radius: 3px; transition: width .4s; background: var(--a); }
+@media(max-width:440px) {
+  .kpis { grid-template-columns: 1fr 1fr; }
+  .hdr h1 { font-size: 16px; }
+  .modal { padding: 15px; border-radius: 13px; }
+  .fg2, .fg3 { grid-template-columns: 1fr; }
+  .card { padding: 11px; }
 }
 </style>
 </head>
 <body>
 <div class="app">
-
-<header class="hdr">
-  <span class="hdr-logo">⚡</span>
-  <h1>ScanForge</h1>
-  <p>Open-source document intelligence suite</p>
-  <span class="oss-badge">● 100% Free · No Watermark · No Ads</span>
-</header>
-
-<div class="status" id="st">Ready — select a tool to begin</div>
-
-<div class="sec">Scan & Capture</div>
-<div class="grid" id="g1">
-  <div class="tool" data-a="scan"><span class="ico">📷</span><span class="name">Scan Document</span><span class="desc">Auto-crop · Perspective · Enhance</span></div>
-  <div class="tool" data-a="idcard"><span class="ico">🪪</span><span class="name">ID Card Scan</span><span class="desc">Front + Back on one page</span></div>
-  <div class="tool" data-a="book"><span class="ico">📖</span><span class="name">Book Mode</span><span class="desc">Auto-split two pages</span></div>
-  <div class="tool" data-a="batch"><span class="ico">📚</span><span class="name">Batch Scan</span><span class="desc">Unlimited multi-page capture</span></div>
+  <header class="hdr">
+    <div>
+      <h1>⚡ BizSuite Max</h1>
+      <p>Complete business OS · 25 modules · 100% offline</p>
+    </div>
+    <div class="hbtns">
+      <div class="hb" id="hbExport" title="Export">📤</div>
+      <div class="hb" id="hbImport" title="Import">📥</div>
+      <div class="hb" id="hbReset" title="Reset">🗑️</div>
+    </div>
+  </header>
+  <div class="status" id="st">Loading...</div>
+  <nav class="tabs" id="tabs">
+    <div class="tab on" data-t="dash">📊 Dashboard</div>
+    <div class="tab" data-t="billing">🧾 Billing</div>
+    <div class="tab" data-t="pos">⚡ POS</div>
+    <div class="tab" data-t="inventory">📦 Inventory</div>
+    <div class="tab" data-t="batch">🏷️ Batches</div>
+    <div class="tab" data-t="serial">🔢 Serial</div>
+    <div class="tab" data-t="warehouse">🏭 Warehouses</div>
+    <div class="tab" data-t="customers">👥 CRM</div>
+    <div class="tab" data-t="suppliers">🔗 Suppliers</div>
+    <div class="tab" data-t="purchase">📋 Purchase</div>
+    <div class="tab" data-t="manufacturing">🏗️ BOM</div>
+    <div class="tab" data-t="expenses">💸 Expenses</div>
+    <div class="tab" data-t="accounting">📒 Accounting</div>
+    <div class="tab" data-t="banking">🏦 Banking</div>
+    <div class="tab" data-t="assets">🏢 Assets</div>
+    <div class="tab" data-t="budget">🎯 Budget</div>
+    <div class="tab" data-t="projects">📁 Projects</div>
+    <div class="tab" data-t="staff">👷 Payroll</div>
+    <div class="tab" data-t="scan">📷 Scan</div>
+    <div class="tab" data-t="reports">📈 Reports</div>
+    <div class="tab" data-t="audit">📜 Audit</div>
+    <div class="tab" data-t="approvals">✅ Approvals</div>
+    <div class="tab" data-t="currency">💱 Currency</div>
+    <div class="tab" data-t="settings">⚙️ Settings</div>
+  </nav>
+  <div id="view"></div>
 </div>
-
-<div class="sec">Recognize & Convert</div>
-<div class="grid" id="g2">
-  <div class="tool" data-a="ocr"><span class="ico">🔍</span><span class="name">OCR Text</span><span class="desc">100+ languages</span></div>
-  <div class="tool" data-a="ocrExcel"><span class="ico">📊</span><span class="name">OCR → Excel</span><span class="desc">Table extraction to CSV</span><span class="tag new">New</span></div>
-  <div class="tool" data-a="imgPdf"><span class="ico">🖼️</span><span class="name">Images → PDF</span><span class="desc">JPG / PNG to multi-page</span></div>
-  <div class="tool" data-a="pdfWord"><span class="ico">📝</span><span class="name">PDF → Word</span><span class="desc">DOCX text export</span><span class="tag new">New</span></div>
-</div>
-
-<div class="sec">PDF Tools</div>
-<div class="grid" id="g3">
-  <div class="tool" data-a="merge"><span class="ico">🔗</span><span class="name">Merge PDFs</span><span class="desc">Combine unlimited files</span></div>
-  <div class="tool" data-a="split"><span class="ico">✂️</span><span class="name">Split PDF</span><span class="desc">Extract page ranges</span></div>
-  <div class="tool" data-a="rotate"><span class="ico">🔄</span><span class="name">Rotate PDF</span><span class="desc">90° / 180° / 270°</span></div>
-  <div class="tool" data-a="compress"><span class="ico">🗜️</span><span class="name">Compress PDF</span><span class="desc">Reduce file size</span></div>
-  <div class="tool" data-a="watermark"><span class="ico">💧</span><span class="name">Watermark</span><span class="desc">Custom text overlay</span><span class="tag pro">Pro</span></div>
-  <div class="tool" data-a="protect"><span class="ico">🔐</span><span class="name">Password PDF</span><span class="desc">AES encryption</span><span class="tag pro">Pro</span></div>
-  <div class="tool" data-a="sign"><span class="ico">✍️</span><span class="name">E-Signature</span><span class="desc">Draw & stamp</span><span class="tag pro">Pro</span></div>
-  <div class="tool" data-a="pinfo"><span class="ico">ℹ️</span><span class="name">PDF Info</span><span class="desc">Pages & file size</span></div>
-</div>
-
-<div class="sec">Productivity</div>
-<div class="grid" id="g4">
-  <div class="tool" data-a="collage"><span class="ico">🎨</span><span class="name">Doc Collage</span><span class="desc">2–4 images on one page</span><span class="tag new">New</span></div>
-  <div class="tool" data-a="timestamp"><span class="ico">⏰</span><span class="name">Timestamp Cam</span><span class="desc">Time + GPS overlay</span><span class="tag new">New</span></div>
-  <div class="tool" data-a="qr"><span class="ico">📱</span><span class="name">QR Scanner</span><span class="desc">jsQR live detection</span><span class="tag new">New</span></div>
-  <div class="tool" data-a="share"><span class="ico">📤</span><span class="name">Share Files</span><span class="desc">Native share sheet</span></div>
-</div>
-
-<footer class="foot">
-  Built on: jscanify · OpenCV.js · Tesseract.js · pdf-lib · jsQR · FileSaver<br>
-  All processing runs locally in your browser. No data is uploaded.
-</footer>
-</div>
-
-<!-- Hidden inputs -->
-<input type="file" id="fPdf" accept=".pdf" multiple class="hidden">
-<input type="file" id="fImg" accept="image/*" multiple class="hidden">
-
-<!-- Modal -->
-<div class="overlay" id="ov"><div class="modal" id="mc"></div></div>
+<nav class="bnav" id="bnav">
+  <div class="bni on" data-t="dash"><span class="bi">📊</span><span class="bl">Dash</span></div>
+  <div class="bni" data-t="billing"><span class="bi">🧾</span><span class="bl">Bill</span></div>
+  <div class="bni" data-t="pos"><span class="bi">⚡</span><span class="bl">POS</span></div>
+  <div class="bni" data-t="inventory"><span class="bi">📦</span><span class="bl">Stock</span></div>
+  <div class="bni" data-t="reports"><span class="bi">📈</span><span class="bl">Reports</span></div>
+</nav>
+<div class="ov" id="ov"><div class="modal" id="mc"></div></div>
+<div class="toast" id="toast"></div>
 
 <script>
-(function(){
+(function() {
 'use strict';
-const {PDFDocument,rgb,degrees,StandardFonts}=PDFLib;
 
-/* ── State ── */
-let pFiles=[],pAction=null,pImgs=[],scanner=null,stream=null,rafId=null,cvReady=false;
-let activeFilter='enhance',ocrLang='eng',sigBlob=null,wmText='CONFIDENTIAL',wmOpacity=.2,pdfPwd='';
+/* ═══════════════════════════════════════════════════════════════
+   DATA LAYER — IndexedDB with self-healing schema
+   ═══════════════════════════════════════════════════════════════ */
+const DB_NAME = 'BizSuiteMax';
+const DB_VER = 1;
+const STORE = 'data';
+let DB = null;
 
-/* ── DOM ── */
-const $=id=>document.getElementById(id);
-const st=$('st'),ov=$('ov'),mc=$('mc'),fPdf=$('fPdf'),fImg=$('fImg');
-
-/* ── Utilities ── */
-function setSt(msg,type){st.textContent=msg;st.className='status'+(type?' '+type:'');}
-function loadSt(msg){st.innerHTML='<span class="spin"></span>'+msg;st.className='status load';}
-function dl(blob,name){saveAs(blob,name);}
-function openM(html){mc.innerHTML=html;ov.classList.add('on');}
-function closeM(){ov.classList.remove('on');mc.innerHTML='';pFiles=[];pAction=null;pImgs=[];killScan();}
-function fBytes(b){if(b<1024)return b+' B';if(b<1048576)return(b/1024).toFixed(1)+' KB';return(b/1048576).toFixed(2)+' MB';}
-function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
-function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-
-/* ── OpenCV init ── */
-function initCv(){
-  return new Promise(res=>{
-    if(typeof cv!=='undefined'&&cv.getBuildInformation){cvReady=true;return res();}
-    const t=setInterval(()=>{
-      if(typeof cv!=='undefined'){
-        if(cv.getBuildInformation){cvReady=true;clearInterval(t);res();}
-        else{cv['onRuntimeInitialized']=()=>{cvReady=true;clearInterval(t);res();};}
-      }
-    },200);
-    setTimeout(()=>{clearInterval(t);res();},20000);
+function openDB() {
+  return new Promise((res, rej) => {
+    const req = indexedDB.open(DB_NAME, DB_VER);
+    req.onupgradeneeded = e => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE);
+    };
+    req.onsuccess = e => res(e.target.result);
+    req.onerror = e => rej(e.target.error);
   });
 }
-initCv();
 
-/* ── Filters ── */
-function applyFilter(cv2,filter){
-  const ctx=cv2.getContext('2d');const id=ctx.getImageData(0,0,cv2.width,cv2.height);const d=id.data;
-  if(filter==='gray'){for(let i=0;i<d.length;i+=4){const g=.299*d[i]+.587*d[i+1]+.114*d[i+2];d[i]=d[i+1]=d[i+2]=g;}}
-  else if(filter==='bw'){for(let i=0;i<d.length;i+=4){const g=.299*d[i]+.587*d[i+1]+.114*d[i+2];const v=g>140?255:0;d[i]=d[i+1]=d[i+2]=v;}}
-  else{const c=1.35,b=12,ic=128*(1-c);for(let i=0;i<d.length;i+=4){d[i]=Math.min(255,Math.max(0,d[i]*c+ic+b));d[i+1]=Math.min(255,Math.max(0,d[i+1]*c+ic+b));d[i+2]=Math.min(255,Math.max(0,d[i+2]*c+ic+b));}}
-  ctx.putImageData(id,0,0);return cv2;
+async function loadDB() {
+  const db = await openDB();
+  return new Promise((res, rej) => {
+    const tx = db.transaction(STORE, 'readonly');
+    const st = tx.objectStore(STORE);
+    const req = st.get('main');
+    req.onsuccess = () => {
+      const d = req.result;
+      res(d ? healDB(d) : defaultDB());
+    };
+    req.onerror = e => rej(e.target.error);
+  });
 }
 
-/* ── Scanner core ── */
-function killScan(){
-  if(rafId){cancelAnimationFrame(rafId);rafId=null;}
-  if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}
-  scanner=null;
+async function saveDB() {
+  const db = await openDB();
+  return new Promise((res, rej) => {
+    const tx = db.transaction(STORE, 'readwrite');
+    const st = tx.objectStore(STORE);
+    const req = st.put(DB, 'main');
+    req.onsuccess = () => res();
+    req.onerror = e => rej(e.target.error);
+  });
 }
-async function launchScan(mode){
-  if(!cvReady){setSt('⏳ Loading OpenCV engine…','warn');await initCv();if(!cvReady){setSt('❌ OpenCV failed to load. Check connection.','err');return;}}
-  scanner=new jscanify();activeFilter='enhance';
-  const isBook=mode==='book',isBatch=mode==='batch';
-  const titles={document:'📷 Scan Document',book:'📖 Book Mode',batch:'📚 Batch Scan'};
-  const hints={document:'Align the document inside the frame. Green outline = detected.',book:'Point at an open book — each capture auto-splits into two pages.',batch:'Capture as many pages as you need, then tap Done to build the PDF.'};
-  openM(
-    `<h3>${titles[mode]||'📷 Scan'}</h3>`+
-    `<p class="sub">${hints[mode]||''}</p>`+
-    `<div class="preview-wrap"><video id="v" autoplay playsinline muted></video><canvas id="ovl" class="ov"></canvas></div>`+
-    `<div class="chips" id="chips">`+
-      `<span class="chip on" data-f="enhance">🎨 Enhance</span>`+
-      `<span class="chip" data-f="gray">⬜ Grayscale</span>`+
-      `<span class="chip" data-f="bw">⬛ B&W</span></div>`+
-    `<div class="acts"><button class="btn-s" id="sCancel">Cancel</button><button class="btn-p" id="sCap">📸 Capture</button></div>`+
-    (isBatch?`<div class="acts" style="margin-top:6px"><button class="btn-g btn-wide" id="batchDone">✅ Done — Create PDF</button></div>`:'')
-  );
-  const vid=$('v'),ovl=$('ovl'),ctx=ovl.getContext('2d');let batch=[];
-  try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1920},height:{ideal:1080}}});}
-  catch(e){setSt('❌ Camera permission denied','err');closeM();return;}
-  vid.srcObject=stream;await vid.play();
-  document.querySelectorAll('.chip').forEach(c=>{c.onclick=()=>{document.querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));c.classList.add('on');activeFilter=c.dataset.f;};});
-  (function loop(){
-    if(!scanner||!vid.videoWidth){rafId=requestAnimationFrame(loop);return;}
-    ovl.width=vid.videoWidth;ovl.height=vid.videoHeight;
-    const tmp=document.createElement('canvas');tmp.width=vid.videoWidth;tmp.height=vid.videoHeight;
-    tmp.getContext('2d').drawImage(vid,0,0);
-    try{const hl=scanner.highlightPaper(tmp);ctx.clearRect(0,0,ovl.width,ovl.height);ctx.drawImage(hl,0,0,ovl.width,ovl.height);}catch(e){}
-    rafId=requestAnimationFrame(loop);
+
+function defaultDB() {
+  return {
+    settings: {
+      bizName: 'My Business', gstin: '', address: '', phone: '', email: '',
+      state: '', stateCode: '', invPrefix: 'INV-', invNext: 1,
+      currency: 'INR', gstEnabled: true, tdsEnabled: false, tcsEnabled: false,
+      thermalWidth: '80mm', baseCurrency: 'INR', fyStart: '04-01',
+      creditLimitEnabled: true, approvalThreshold: 50000
+    },
+    products: [], customers: [], suppliers: [], invoices: [], purchases: [],
+    expenses: [], journal: [], staff: [], attendance: [], payments: [],
+    batches: [], serials: [],
+    warehouses: [{ id: 'default', name: 'Main Store', address: '' }],
+    stockMoves: [], audit: [], recurring: [],
+    roles: [
+      { id: 'admin', name: 'Admin', perms: ['all'] },
+      { id: 'manager', name: 'Manager', perms: ['billing', 'inventory', 'reports', 'purchase', 'approvals'] },
+      { id: 'staff', name: 'Staff', perms: ['billing', 'pos'] }
+    ],
+    currentUser: { name: 'Admin', role: 'admin' },
+    boms: [], workOrders: [], assets: [],
+    budgets: [], projects: [], projectTasks: [],
+    bankAccounts: [], bankTransactions: [],
+    currencies: [
+      { code: 'INR', name: 'Indian Rupee', symbol: '₹', rate: 1 },
+      { code: 'USD', name: 'US Dollar', symbol: '$', rate: 83.5 },
+      { code: 'EUR', name: 'Euro', symbol: '€', rate: 90.2 },
+      { code: 'GBP', name: 'British Pound', symbol: '£', rate: 105.8 },
+      { code: 'AED', name: 'UAE Dirham', symbol: 'د.إ', rate: 22.7 }
+    ],
+    priceLists: [], approvals: [], emailLog: [], vendorPayments: [],
+    meta: { created: new Date().toISOString(), version: 1 }
+  };
+}
+
+function healDB(d) {
+  const def = defaultDB();
+  for (const k in def) {
+    if (!(k in d)) d[k] = JSON.parse(JSON.stringify(def[k]));
+  }
+  for (const k in def.settings) {
+    if (!(k in d.settings)) d.settings[k] = def.settings[k];
+  }
+  return d;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   UTILITIES
+   ═══════════════════════════════════════════════════════════════ */
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+function fmt(n) {
+  if (n == null || isNaN(n)) return '0.00';
+  return Number(n).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function today() { return new Date().toISOString().slice(0, 10); }
+function nowStr() { return new Date().toLocaleString(); }
+function esc(s) {
+  return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+function num(v) { return parseFloat(v) || 0; }
+function $(id) { return document.getElementById(id); }
+
+function setSt(m, t) {
+  const e = $('st');
+  e.textContent = m;
+  e.className = 'status' + (t ? ' ' + t : '');
+}
+function toast(m) {
+  const t = $('toast');
+  t.textContent = m;
+  t.className = 'toast on';
+  setTimeout(() => t.className = 'toast', 2200);
+}
+function openM(h) {
+  $('mc').innerHTML = '<span class="close" onclick="closeModal()">✕</span>' + h;
+  $('ov').classList.add('on');
+}
+function closeModal() {
+  $('ov').classList.remove('on');
+  $('mc').innerHTML = '';
+}
+window.closeModal = closeModal;
+
+function logAudit(action, detail) {
+  DB.audit.push({
+    id: uid(), ts: nowStr(), user: DB.currentUser.name,
+    action, detail
+  });
+  if (DB.audit.length > 2000) DB.audit = DB.audit.slice(-2000);
+}
+
+function downloadBlob(blob, name) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+const GST_RATES = [0, 5, 12, 18, 28];
+
+function calcGST(items, interState) {
+  let taxable = 0, cgst = 0, sgst = 0, igst = 0, cess = 0;
+  items.forEach(it => {
+    const amt = num(it.qty) * num(it.rate);
+    taxable += amt;
+    const rate = num(it.gstRate) || 0;
+    const tax = amt * rate / 100;
+    if (interState) igst += tax;
+    else { cgst += tax / 2; sgst += tax / 2; }
+  });
+  return {
+    taxable, cgst, sgst, igst, cess,
+    total: taxable + cgst + sgst + igst + cess,
+    totalTax: cgst + sgst + igst + cess
+  };
+}
+
+function hasPerm(p) {
+  if (DB.currentUser.role === 'admin') return true;
+  const r = DB.roles.find(x => x.id === DB.currentUser.role);
+  return r ? r.perms.includes('all') || r.perms.includes(p) : false;
+}
+
+function convertCurrency(amount, from, to) {
+  const f = DB.currencies.find(c => c.code === from) || { rate: 1 };
+  const t = DB.currencies.find(c => c.code === to) || { rate: 1 };
+  return amount * (t.rate / f.rate);
+}
+
+function checkCreditLimit(custId, newAmount) {
+  if (!DB.settings.creditLimitEnabled) return true;
+  const cust = DB.customers.find(c => c.id === custId);
+  if (!cust || !cust.creditLimit) return true;
+  const outstanding = DB.invoices
+    .filter(i => i.customerId === custId)
+    .reduce((s, i) => s + (i.total - i.paid), 0);
+  return (outstanding + newAmount) <= num(cust.creditLimit);
+}
+
+function needsApproval(amount) {
+  return amount >= num(DB.settings.approvalThreshold);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ROUTER
+   ═══════════════════════════════════════════════════════════════ */
+const VIEWS = {};
+const BINDINGS = {};
+let cur = 'dash';
+
+function navigate(v) {
+  cur = v;
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t.dataset.t === v));
+  document.querySelectorAll('.bni').forEach(t => t.classList.toggle('on', t.dataset.t === v));
+  if (VIEWS[v]) {
+    $('view').innerHTML = VIEWS[v]();
+    if (BINDINGS[v]) BINDINGS[v]();
+  } else {
+    $('view').innerHTML = '<div class="empty">Coming soon</div>';
+  }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+document.querySelectorAll('.tab').forEach(t =>
+  t.addEventListener('click', () => navigate(t.dataset.t)));
+document.querySelectorAll('.bni').forEach(t =>
+  t.addEventListener('click', () => navigate(t.dataset.t)));
+
+/* ═══════════════════════════════════════════════════════════════
+   DASHBOARD
+   ═══════════════════════════════════════════════════════════════ */
+VIEWS.dash = function() {
+  const ts = DB.invoices.reduce((s, i) => s + (i.total || 0), 0);
+  const tp = DB.invoices.reduce((s, i) => s + (i.paid || 0), 0);
+  const out = ts - tp;
+  const tpur = DB.purchases.reduce((s, p) => s + (p.total || 0), 0);
+  const tex = DB.expenses.reduce((s, e) => s + num(e.amount), 0);
+  const sv = DB.products.reduce((s, p) => s + num(p.qty) * num(p.cost), 0);
+  const low = DB.products.filter(p => num(p.qty) <= num(p.minQty || 5));
+  const recent = [...DB.invoices].sort((a, b) => b.date?.localeCompare(a.date)).slice(0, 5);
+  const totalAssets = DB.assets.reduce((s, a) => s + num(a.cost), 0);
+  const cashBal = DB.bankAccounts.reduce((s, b) => s + num(b.balance), 0);
+  const projCount = DB.projects.filter(p => p.status !== 'completed').length;
+  const pendAppr = DB.approvals.filter(a => a.status === 'pending').length;
+
+  return `
+    <div class="kpis">
+      <div class="kpi g"><div class="kl">Total Sales</div><div class="kv">₹${fmt(ts)}</div><div class="kd">${DB.invoices.length} invoices</div></div>
+      <div class="kpi r"><div class="kl">Outstanding</div><div class="kv">₹${fmt(out)}</div><div class="kd">${DB.invoices.filter(i => (i.total - i.paid) > 0).length} unpaid</div></div>
+      <div class="kpi a"><div class="kl">Expenses</div><div class="kv">₹${fmt(tex)}</div><div class="kd">${DB.expenses.length} entries</div></div>
+      <div class="kpi c"><div class="kl">Stock Value</div><div class="kv">₹${fmt(sv)}</div><div class="kd">${DB.products.length} products</div></div>
+      <div class="kpi p"><div class="kl">Purchases</div><div class="kv">₹${fmt(tpur)}</div><div class="kd">${DB.purchases.length} POs</div></div>
+      <div class="kpi pk"><div class="kl">Net Profit</div><div class="kv">₹${fmt(ts - tpur - tex)}</div><div class="kd">Sales−Purch−Exp</div></div>
+      <div class="kpi"><div class="kl">Cash & Bank</div><div class="kv">₹${fmt(cashBal)}</div><div class="kd">${DB.bankAccounts.length} accounts</div></div>
+      <div class="kpi"><div class="kl">Fixed Assets</div><div class="kv">₹${fmt(totalAssets)}</div><div class="kd">${DB.assets.length} assets</div></div>
+      <div class="kpi c"><div class="kl">Active Projects</div><div class="kv">${projCount}</div><div class="kd">ongoing</div></div>
+      <div class="kpi a"><div class="kl">Pending Approvals</div><div class="kv">${pendAppr}</div><div class="kd">awaiting action</div></div>
+    </div>
+    ${low.length ? `
+      <div class="card">
+        <h3>⚠️ Low Stock Alert (${low.length})</h3>
+        <div class="scroll-list">
+          <table class="tbl">
+            <thead><tr><th>Product</th><th class="num">Qty</th><th class="num">Min</th><th>Action</th></tr></thead>
+            <tbody>
+              ${low.map(p => `
+                <tr>
+                  <td>${esc(p.name)}</td>
+                  <td class="num" style="color:var(--r)">${p.qty}</td>
+                  <td class="num">${p.minQty || 5}</td>
+                  <td><span class="btn btn-s btn-sm" onclick="quickReorder('${p.id}')">+Order</span></td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    ` : ''}
+    <div class="card">
+      <h3>📈 Sales Trend (Last 6 Months)</h3>
+      <div class="chart-wrap"><canvas id="chDash"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>🧾 Recent Invoices</h3>
+      ${recent.length ? `
+        <div class="scroll-list">
+          <table class="tbl">
+            <thead><tr><th>Invoice</th><th>Customer</th><th class="num">Total</th><th>Status</th></tr></thead>
+            <tbody>
+              ${recent.map(i => `
+                <tr>
+                  <td>${esc(i.number)}</td>
+                  <td>${esc(i.customerName)}</td>
+                  <td class="num">₹${fmt(i.total)}</td>
+                  <td><span class="tag tag-${i.status || 'draft'}">${(i.status || 'draft').toUpperCase()}</span></td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      ` : '<div class="empty">No invoices yet</div>'}
+    </div>
+  `;
+};
+
+BINDINGS.dash = function() {
+  setTimeout(drawDashChart, 50);
+};
+
+let dashChart = null;
+function drawDashChart() {
+  const ctx = $('chDash');
+  if (!ctx) return;
+  if (dashChart) dashChart.destroy();
+  const months = [], sales = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date();
+    d.setMonth(d.getMonth() - i);
+    const m = d.toISOString().slice(0, 7);
+    months.push(d.toLocaleString('en', { month: 'short' }));
+    sales.push(DB.invoices
+      .filter(inv => inv.date?.startsWith(m))
+      .reduce((s, inv) => s + (inv.total || 0), 0));
+  }
+  dashChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: months,
+      datasets: [{
+        label: 'Sales', data: sales,
+        backgroundColor: 'rgba(99,102,241,.6)',
+        borderColor: '#6366f1', borderWidth: 1, borderRadius: 5
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: {
+          beginAtZero: true,
+          grid: { color: 'rgba(255,255,255,.05)' },
+          ticks: { color: '#85859a', font: { size: 9 } }
+        },
+        x: {
+          grid: { display: false },
+          ticks: { color: '#85859a', font: { size: 9 } }
+        }
+      }
+    }
+  });
+}
+
+window.quickReorder = function(pid) {
+  const p = DB.products.find(x => x.id === pid);
+  if (!p) return;
+  openM(`
+    <h3>Quick Reorder — ${esc(p.name)}</h3>
+    <div class="fg"><label>Quantity</label><input type="number" id="qrQty" value="${(p.minQty || 5) * 2}"></div>
+    <div class="fg"><label>Supplier</label>
+      <select id="qrSup">
+        <option value="">— Select —</option>
+        ${DB.suppliers.map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join('')}
+      </select>
+    </div>
+    <div class="acts" style="margin-top:10px">
+      <button class="btn btn-s" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-p" id="qrGo">Create PO</button>
+    </div>
+  `);
+  $('qrGo').onclick = async () => {
+    const q = num($('qrQty').value);
+    const sid = $('qrSup').value;
+    const sup = DB.suppliers.find(s => s.id === sid);
+    DB.purchases.push({
+      id: uid(),
+      number: 'PO-' + String(DB.purchases.length + 1).padStart(4, '0'),
+      supplierId: sid,
+      supplierName: sup ? sup.name : '',
+      date: today(), expected: today(),
+      items: [{ name: p.name, qty: q, cost: p.cost || p.rate }],
+      total: q * (p.cost || p.rate),
+      status: 'draft', created: nowStr()
+    });
+    logAudit('PO created', 'Reorder ' + p.name);
+    await saveDB();
+    closeModal();
+    toast('✅ PO created');
+    navigate('purchase');
+  };
+};
+
+/* ═══════════════════════════════════════════════════════════════
+   BILLING
+   ═══════════════════════════════════════════════════════════════ */
+VIEWS.billing = function() {
+  const invs = [...DB.invoices].sort((a, b) => b.date?.localeCompare(a.date));
+  return `
+    <div class="card">
+      <h3>🧾 GST Invoices</h3>
+      <p class="sub">Tax Invoice · Proforma · Credit Note · Bill of Supply · Delivery Challan</p>
+      <div class="acts">
+        <button class="btn btn-p" id="btnNewInv">+ New Invoice</button>
+        <button class="btn btn-s" id="btnExpGSTR1">📤 GSTR-1</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>All Invoices (${invs.length})</h3>
+      ${invs.length ? `
+        <div class="scroll-list">
+          <table class="tbl">
+            <thead><tr><th>#</th><th>Customer</th><th class="num">Total</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+              ${invs.map(i => `
+                <tr>
+                  <td>${esc(i.number)}</td>
+                  <td>${esc(i.customerName)}</td>
+                  <td class="num">₹${fmt(i.total)}</td>
+                  <td><span class="tag tag-${i.status || 'draft'}">${(i.status || 'draft').toUpperCase()}</span></td>
+                  <td><span class="btn btn-s btn-sm" onclick="viewInv('${i.id}')">View</span></td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      ` : '<div class="empty">No invoices yet</div>'}
+    </div>
+  `;
+};
+
+BINDINGS.billing = function() {
+  $('btnNewInv').onclick = newInvoice;
+  $('btnExpGSTR1').onclick = exportGSTR1;
+};
+
+window.viewInv = function(id) {
+  const i = DB.invoices.find(x => x.id === id);
+  if (i) showInvoiceModal(i);
+};
+
+function newInvoice() {
+  const custOpts = DB.customers.map(c =>
+    `<option value="${c.id}">${esc(c.name)}${c.creditLimit ? ' [Limit ₹' + fmt(c.creditLimit) + ']' : ''}</option>`
+  ).join('');
+
+  openM(`
+    <h3>🧾 New Invoice</h3>
+    <div class="fg">
+      <label>Invoice Type</label>
+      <select id="invType">
+        <option value="tax">Tax Invoice</option>
+        <option value="proforma">Proforma / Estimate</option>
+        <option value="credit">Credit Note</option>
+        <option value="supply">Bill of Supply</option>
+        <option value="challan">Delivery Challan</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label>Customer</label>
+      <select id="invCust"><option value="">— Select —</option>${custOpts}</select>
+    </div>
+    <div class="fg2">
+      <div class="fg"><label>Date</label><input type="date" id="invDate" value="${today()}"></div>
+      <div class="fg"><label>Due Date</label><input type="date" id="invDue" value="${today()}"></div>
+    </div>
+    <div class="fg2">
+      <div class="fg"><label>Currency</label>
+        <select id="invCurr">${DB.currencies.map(c => `<option value="${c.code}" ${c.code === 'INR' ? 'selected' : ''}>${c.code} (${c.symbol})</option>`).join('')}</select>
+      </div>
+      <div class="fg"><label>Exchange Rate</label><input type="number" id="invRate" value="1" step="0.01"></div>
+    </div>
+    <div class="sec">Line Items</div>
+    <div id="invItems"></div>
+    <button class="btn btn-s btn-full btn-sm" id="addLine" style="margin-top:4px;">+ Add Item</button>
+    <div class="fg" style="margin-top:9px;">
+      <label>Notes</label>
+      <textarea id="invNotes" placeholder="Optional notes..."></textarea>
+    </div>
+    <div class="acts" style="margin-top:9px;">
+      <button class="btn btn-s" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-p" id="saveInv">Save Invoice</button>
+    </div>
+  `);
+
+  let lc = 0;
+  function addL() {
+    lc++;
+    const prodOpts = DB.products.map(p =>
+      `<option value="${p.id}">${esc(p.name)} (₹${p.rate})</option>`
+    ).join('');
+    const d = document.createElement('div');
+    d.className = 'fg';
+    d.id = 'line' + lc;
+    d.innerHTML = `
+      <div class="fg2">
+        <select class="li-prod" onchange="fillLine(this,${lc})">
+          <option value="">— Product —</option>${prodOpts}
+        </select>
+        <input type="number" class="li-qty" placeholder="Qty" value="1" min="1">
+      </div>
+      <div class="fg3" style="margin-top:3px;">
+        <input type="number" class="li-rate" placeholder="Rate" value="0">
+        <select class="li-gst">
+          ${GST_RATES.map(r => `<option value="${r}" ${r === 18 ? 'selected' : ''}>GST ${r}%</option>`).join('')}
+        </select>
+        <button class="btn btn-r btn-sm" onclick="this.parentElement.parentElement.remove()">✕</button>
+      </div>
+    `;
+    $('invItems').appendChild(d);
+  }
+
+  window.fillLine = function(sel, id) {
+    const p = DB.products.find(x => x.id === sel.value);
+    if (!p) return;
+    const l = $('line' + id);
+    l.querySelector('.li-rate').value = p.rate;
+    l.querySelector('.li-gst').value = p.gstRate || 18;
+  };
+
+  addL();
+  $('addLine').onclick = addL;
+
+  $('saveInv').onclick = async () => {
+    const cid = $('invCust').value;
+    const cust = DB.customers.find(c => c.id === cid);
+    if (!cust) { toast('Select a customer'); return; }
+
+    const items = [];
+    $('invItems').querySelectorAll('.fg').forEach(d => {
+      const pid = d.querySelector('.li-prod').value;
+      const p = DB.products.find(x => x.id === pid);
+      items.push({
+        productId: pid,
+        name: p ? p.name : 'Item',
+        qty: num(d.querySelector('.li-qty').value),
+        rate: num(d.querySelector('.li-rate').value),
+        gstRate: num(d.querySelector('.li-gst').value),
+        hsn: p ? p.hsn : ''
+      });
+    });
+    if (!items.length) { toast('Add at least one item'); return; }
+
+    const inter = cust.stateCode && DB.settings.stateCode && cust.stateCode !== DB.settings.stateCode;
+    const gst = calcGST(items, inter);
+
+    if (!checkCreditLimit(cid, gst.total)) {
+      toast('⚠️ Credit limit exceeded for ' + cust.name);
+      return;
+    }
+
+    const inv = {
+      id: uid(),
+      number: DB.settings.invPrefix + String(DB.settings.invNext).padStart(4, '0'),
+      type: $('invType').value,
+      date: $('invDate').value,
+      dueDate: $('invDue').value,
+      customerId: cid,
+      customerName: cust.name,
+      customerGSTIN: cust.gstin || '',
+      items, ...gst,
+      currency: $('invCurr').value,
+      exchangeRate: num($('invRate').value) || 1,
+      paid: 0, status: 'draft',
+      notes: $('invNotes').value,
+      created: nowStr()
+    };
+
+    if (needsApproval(gst.total)) {
+      DB.approvals.push({
+        id: uid(), type: 'invoice', ref: inv.number, amount: gst.total,
+        requestedBy: DB.currentUser.name, status: 'pending', date: today()
+      });
+      toast('📋 Sent for approval');
+    }
+
+    DB.invoices.push(inv);
+    DB.settings.invNext++;
+
+    items.forEach(it => {
+      const p = DB.products.find(x => x.id === it.productId);
+      if (p) {
+        p.qty = num(p.qty) - it.qty;
+        DB.stockMoves.push({
+          id: uid(), productId: p.id, productName: p.name,
+          type: 'sale', qty: -it.qty, ref: inv.number,
+          date: inv.date, warehouse: 'default'
+        });
+      }
+    });
+
+    DB.journal.push({
+      id: uid(), date: inv.date, ref: inv.number, type: 'sale',
+      debit: 'Accounts Receivable', credit: 'Sales',
+      amount: inv.total, created: nowStr()
+    });
+
+    logAudit('Invoice created', inv.number + ' — ₹' + fmt(inv.total));
+    await saveDB();
+    closeModal();
+    toast('✅ ' + inv.number + ' created');
+    navigate('billing');
+  };
+}
+
+function showInvoiceModal(inv) {
+  openM(`
+    <h3>${esc(inv.number)}</h3>
+    <div class="inv-preview">
+      <h2>${esc(DB.settings.bizName)}</h2>
+      <p>${esc(DB.settings.address)}<br>GSTIN: ${esc(inv.customerGSTIN || DB.settings.gstin)}</p>
+      <hr style="margin:5px 0;border:none;border-top:1px solid #ddd">
+      <p><b>Bill To:</b> ${esc(inv.customerName)}<br>
+         <b>Date:</b> ${inv.date}<br>
+         <b>Due:</b> ${inv.dueDate}</p>
+      <table>
+        <thead><tr><th>Item</th><th>Qty</th><th>Rate</th><th>GST</th><th>Amount</th></tr></thead>
+        <tbody>
+          ${inv.items.map(it => `
+            <tr>
+              <td>${esc(it.name)}</td>
+              <td>${it.qty}</td>
+              <td>₹${fmt(it.rate)}</td>
+              <td>${it.gstRate}%</td>
+              <td>₹${fmt(it.qty * it.rate)}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+      <div style="text-align:right;margin-top:7px;font-size:9px;">
+        <p>Taxable: ₹${fmt(inv.taxable)}</p>
+        ${inv.cgst ? `<p>CGST: ₹${fmt(inv.cgst)} · SGST: ₹${fmt(inv.sgst)}</p>` : ''}
+        ${inv.igst ? `<p>IGST: ₹${fmt(inv.igst)}</p>` : ''}
+        <p style="font-size:12px;font-weight:800;margin-top:3px;">Total: ₹${fmt(inv.total)}</p>
+      </div>
+    </div>
+    <div class="acts" style="margin-top:10px;">
+      <button class="btn btn-s" onclick="closeModal()">Close</button>
+      <button class="btn btn-p" onclick="markPaid('${inv.id}')">Mark Paid</button>
+    </div>
+    <div class="acts" style="margin-top:4px;">
+      <button class="btn btn-g" onclick="dlInvPDF('${inv.id}')">📄 PDF</button>
+      <button class="btn btn-s" onclick="thermalPrint('${inv.id}')">🖨️ Thermal</button>
+    </div>
+  `);
+}
+
+window.markPaid = async function(id) {
+  const i = DB.invoices.find(x => x.id === id);
+  if (!i) return;
+  i.paid = i.total;
+  i.status = 'paid';
+  DB.payments.push({
+    id: uid(), date: today(), ref: i.number,
+    amount: i.total, method: 'cash', type: 'receipt'
+  });
+  logAudit('Invoice paid', i.number);
+  await saveDB();
+  closeModal();
+  toast('✅ Marked paid');
+  navigate('billing');
+};
+
+window.dlInvPDF = function(id) {
+  const inv = DB.invoices.find(x => x.id === id);
+  if (!inv) return;
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  doc.setFontSize(16);
+  doc.text(DB.settings.bizName, 14, 20);
+  doc.setFontSize(9);
+  doc.text(DB.settings.address || '', 14, 26);
+  doc.setFontSize(12);
+  doc.text(inv.type.toUpperCase() + ' — ' + inv.number, 14, 38);
+  doc.setFontSize(9);
+  doc.text('Date: ' + inv.date + '  Due: ' + inv.dueDate, 14, 44);
+  doc.text('Bill To: ' + inv.customerName, 14, 50);
+  doc.autoTable({
+    startY: 56,
+    head: [['Item', 'Qty', 'Rate', 'GST%', 'Amount']],
+    body: inv.items.map(it => [
+      it.name, it.qty, '₹' + fmt(it.rate), it.gstRate + '%',
+      '₹' + fmt(it.qty * it.rate)
+    ]),
+    theme: 'grid',
+    styles: { fontSize: 8 }
+  });
+  let y = doc.lastAutoTable.finalY + 6;
+  doc.setFontSize(9);
+  doc.text('Taxable: ₹' + fmt(inv.taxable), 140, y);
+  y += 5;
+  if (inv.cgst) {
+    doc.text('CGST: ₹' + fmt(inv.cgst), 140, y); y += 5;
+    doc.text('SGST: ₹' + fmt(inv.sgst), 140, y); y += 5;
+  }
+  if (inv.igst) {
+    doc.text('IGST: ₹' + fmt(inv.igst), 140, y); y += 5;
+  }
+  doc.setFontSize(12);
+  doc.text('Total: ₹' + fmt(inv.total), 140, y + 4);
+  doc.save(inv.number + '.pdf');
+  toast('✅ PDF downloaded');
+};
+
+window.thermalPrint = function(id) {
+  const inv = DB.invoices.find(x => x.id === id);
+  if (!inv) return;
+  const w = DB.settings.thermalWidth || '80mm';
+  const html = `
+    <div class="thermal">
+      <center>
+        <b>${esc(DB.settings.bizName)}</b><br>
+        ${esc(DB.settings.address || '')}<br>
+        GSTIN: ${esc(DB.settings.gstin || '')}
+      </center>
+      <hr>
+      <b>${inv.number}</b> · ${inv.date}<br>
+      Cust: ${esc(inv.customerName)}
+      <hr>
+      <table style="width:100%;font-size:8.5px">
+        ${inv.items.map(it => `
+          <tr>
+            <td>${esc(it.name)}</td>
+            <td style="text-align:right">${it.qty}×₹${fmt(it.rate)}</td>
+            <td style="text-align:right">₹${fmt(it.qty * it.rate)}</td>
+          </tr>
+        `).join('')}
+      </table>
+      <hr>
+      Taxable: ₹${fmt(inv.taxable)}<br>
+      ${inv.cgst ? `CGST: ₹${fmt(inv.cgst)}<br>SGST: ₹${fmt(inv.sgst)}<br>` : ''}
+      ${inv.igst ? `IGST: ₹${fmt(inv.igst)}<br>` : ''}
+      <b style="font-size:12px">TOTAL: ₹${fmt(inv.total)}</b>
+      <hr>
+      <center>Thank you!</center>
+    </div>
+    <div class="acts" style="margin-top:10px">
+      <button class="btn btn-s" onclick="closeModal()">Close</button>
+      <button class="btn btn-p" onclick="window.print()">🖨️ Print</button>
+    </div>
+  `;
+  openM(`<h3>🖨️ Thermal Receipt (${w})</h3>${html}`);
+};
+
+function exportGSTR1() {
+  const invs = DB.invoices.filter(i => i.type === 'tax');
+  if (!invs.length) { toast('No tax invoices'); return; }
+  let csv = 'Invoice No,Date,Customer,GSTIN,Taxable,CGST,SGST,IGST,Total\n';
+  invs.forEach(i => {
+    csv += `${i.number},${i.date},"${i.customerName}","${i.customerGSTIN || ''}",${i.taxable.toFixed(2)},${i.cgst.toFixed(2)},${i.sgst.toFixed(2)},${i.igst.toFixed(2)},${i.total.toFixed(2)}\n`;
+  });
+  downloadBlob(new Blob([csv], { type: 'text/csv' }), 'GSTR1_' + today() + '.csv');
+  toast('✅ GSTR-1 exported');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   POS
+   ═══════════════════════════════════════════════════════════════ */
+VIEWS.pos = function() {
+  return `
+    <div class="card">
+      <h3>⚡ POS — Quick Billing</h3>
+      <p class="sub">Tap products to add. Fast checkout with thermal receipt.</p>
+      <div class="fg">
+        <input id="posSearch" placeholder="🔍 Search products..." autocomplete="off">
+      </div>
+      <div id="posGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(95px,1fr));gap:5px;margin-bottom:9px;"></div>
+      <div class="card" style="background:var(--s2)">
+        <h3>🛒 Cart</h3>
+        <div id="posCart"></div>
+        <div id="posTotal" style="text-align:right;font-size:15px;font-weight:800;margin-top:7px;">Total: ₹0.00</div>
+        <div class="acts" style="margin-top:7px;">
+          <button class="btn btn-s" id="posClear">Clear</button>
+          <button class="btn btn-g" id="posPay">💵 Pay</button>
+        </div>
+      </div>
+    </div>
+  `;
+};
+
+BINDINGS.pos = function() {
+  window.posCart = [];
+  renderPosGrid();
+  renderPosCart();
+  $('posSearch').oninput = renderPosGrid;
+  $('posClear').onclick = () => { window.posCart = []; renderPosCart(); };
+  $('posPay').onclick = posPay;
+};
+
+function renderPosGrid() {
+  const q = ($('posSearch').value || '').toLowerCase();
+  const prods = DB.products.filter(p => !q || p.name.toLowerCase().includes(q));
+  $('posGrid').innerHTML = prods.slice(0, 30).map(p => `
+    <div class="card" style="padding:9px;cursor:pointer;text-align:center" onclick="posAdd('${p.id}')">
+      <div style="font-size:16px;margin-bottom:3px">📦</div>
+      <div style="font-size:10px;font-weight:700">${esc(p.name)}</div>
+      <div style="font-size:8.5px;color:var(--txt2)">₹${fmt(p.rate)}</div>
+    </div>
+  `).join('') || '<div class="empty">No products</div>';
+}
+
+window.posCart = [];
+window.posAdd = function(pid) {
+  const p = DB.products.find(x => x.id === pid);
+  if (!p) return;
+  const ex = window.posCart.find(c => c.productId === pid);
+  if (ex) ex.qty++;
+  else window.posCart.push({
+    productId: pid, name: p.name,
+    rate: p.rate, gstRate: p.gstRate || 18, qty: 1
+  });
+  renderPosCart();
+};
+window.posDel = function(i) { window.posCart.splice(i, 1); renderPosCart(); };
+window.posQty = function(i, d) {
+  window.posCart[i].qty = Math.max(1, window.posCart[i].qty + d);
+  renderPosCart();
+};
+
+function renderPosCart() {
+  const c = window.posCart;
+  if (!c.length) {
+    $('posCart').innerHTML = '<div class="empty">Cart empty</div>';
+    $('posTotal').textContent = 'Total: ₹0.00';
+    return;
+  }
+  let tot = 0;
+  c.forEach(it => { tot += it.qty * it.rate; });
+  $('posCart').innerHTML = c.map((it, i) => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.05)">
+      <span style="font-size:10.5px">${esc(it.name)}</span>
+      <span>
+        <button class="btn btn-s btn-sm" onclick="posQty(${i},-1)">−</button>
+        ${it.qty}
+        <button class="btn btn-s btn-sm" onclick="posQty(${i},1)">+</button>
+      </span>
+      <span style="font-size:10.5px">₹${fmt(it.qty * it.rate)}</span>
+      <button class="btn btn-r btn-sm" onclick="posDel(${i})">✕</button>
+    </div>
+  `).join('');
+  $('posTotal').textContent = 'Total: ₹' + fmt(tot);
+}
+
+async function posPay() {
+  const c = window.posCart;
+  if (!c.length) { toast('Cart empty'); return; }
+
+  let walkIn = DB.customers.find(x => x.name === 'Walk-in Customer');
+  if (!walkIn) {
+    walkIn = {
+      id: uid(), name: 'Walk-in Customer', phone: '', gstin: '',
+      stateCode: DB.settings.stateCode || '', creditLimit: 0
+    };
+    DB.customers.push(walkIn);
+  }
+
+  const gst = calcGST(c, false);
+  const inv = {
+    id: uid(),
+    number: DB.settings.invPrefix + String(DB.settings.invNext).padStart(4, '0'),
+    type: 'tax',
+    date: today(), dueDate: today(),
+    customerId: walkIn.id,
+    customerName: walkIn.name,
+    items: c, ...gst,
+    paid: gst.total, status: 'paid',
+    notes: 'POS Sale', created: nowStr()
+  };
+  DB.invoices.push(inv);
+  DB.settings.invNext++;
+
+  c.forEach(it => {
+    const p = DB.products.find(x => x.id === it.productId);
+    if (p) p.qty = num(p.qty) - it.qty;
+  });
+
+  DB.journal.push({
+    id: uid(), date: inv.date, ref: inv.number, type: 'sale',
+    debit: 'Cash', credit: 'Sales', amount: inv.total, created: nowStr()
+  });
+
+  logAudit('POS sale', inv.number + ' — ₹' + fmt(inv.total));
+  await saveDB();
+  window.posCart = [];
+  renderPosCart();
+  toast('✅ Paid ₹' + fmt(inv.total));
+  thermalPrint(inv.id);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   INVENTORY
+   ═══════════════════════════════════════════════════════════════ */
+VIEWS.inventory = function() {
+  return `
+    <div class="card">
+      <h3>📦 Product Catalog</h3>
+      <div class="acts">
+        <button class="btn btn-p" id="btnNewProd">+ Product</button>
+        <button class="btn btn-s" id="btnImpProd">📥 Import</button>
+        <button class="btn btn-s" id="btnExpProd">📤 Export</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Products (${DB.products.length})</h3>
+      ${DB.products.length ? `
+        <div class="scroll-list">
+          <table class="tbl">
+            <thead><tr><th>Name</th><th>SKU</th><th class="num">Qty</th><th class="num">Rate</th><th class="num">Value</th><th></th></tr></thead>
+            <tbody>
+              ${DB.products.map(p => `
+                <tr>
+                  <td>${esc(p.name)}<br><span style="font-size:8px;color:var(--txt3)">${esc(p.category || '')}</span></td>
+                  <td>${esc(p.sku || '-')}</td>
+                  <td class="num" style="color:${num(p.qty) <= num(p.minQty || 5) ? 'var(--r)' : 'inherit'}">${p.qty}</td>
+                  <td class="num">₹${fmt(p.rate)}</td>
+                  <td class="num">₹${fmt(num(p.qty) * num(p.cost || p.rate))}</td>
+                  <td><span class="btn btn-s btn-sm" onclick="editProd('${p.id}')">✏️</span></td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      ` : '<div class="empty">No products yet</div>'}
+    </div>
+  `;
+};
+
+BINDINGS.inventory = function() {
+  $('btnNewProd').onclick = () => prodModal();
+  $('btnImpProd').onclick = importProds;
+  $('btnExpProd').onclick = exportProds;
+};
+
+window.editProd = function(id) {
+  prodModal(DB.products.find(p => p.id === id));
+};
+
+function prodModal(p) {
+  const e = p || {};
+  openM(`
+    <h3>${p ? '✏️ Edit' : '📦 New'} Product</h3>
+    <div class="fg"><label>Name *</label><input id="pName" value="${esc(e.name || '')}"></div>
+    <div class="fg2">
+      <div class="fg"><label>SKU</label><input id="pSku" value="${esc(e.sku || '')}"></div>
+      <div class="fg"><label>Category</label><input id="pCat" value="${esc(e.category || '')}"></div>
+    </div>
+    <div class="fg3">
+      <div class="fg"><label>Qty</label><input type="number" id="pQty" value="${e.qty || 0}"></div>
+      <div class="fg"><label>Min Qty</label><input type="number" id="pMin" value="${e.minQty || 5}"></div>
+      <div class="fg"><label>Cost</label><input type="number" id="pCost" value="${e.cost || 0}"></div>
+    </div>
+    <div class="fg2">
+      <div class="fg"><label>Sell Rate</label><input type="number" id="pRate" value="${e.rate || 0}"></div>
+      <div class="fg"><label>GST %</label>
+        <select id="pGst">${GST_RATES.map(r => `<option value="${r}" ${r === (e.gstRate || 18) ? 'selected' : ''}>${r}%</option>`).join('')}</select>
+      </div>
+    </div>
+    <div class="fg2">
+      <div class="fg"><label>HSN</label><input id="pHsn" value="${esc(e.hsn || '')}"></div>
+      <div class="fg"><label>Barcode</label><input id="pBar" value="${esc(e.barcode || '')}"></div>
+    </div>
+    <div class="acts" style="margin-top:10px">
+      <button class="btn btn-s" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-p" id="saveProd">Save</button>
+    </div>
+  `);
+
+  $('saveProd').onclick = async () => {
+    const n = $('pName').value.trim();
+    if (!n) { toast('Name required'); return; }
+    const o = {
+      id: p ? p.id : uid(), name: n,
+      sku: $('pSku').value.trim(),
+      category: $('pCat').value.trim(),
+      qty: num($('pQty').value),
+      minQty: num($('pMin').value),
+      cost: num($('pCost').value),
+      rate: num($('pRate').value),
+      gstRate: num($('pGst').value),
+      hsn: $('pHsn').value.trim(),
+      barcode: $('pBar').value.trim()
+    };
+    if (p) Object.assign(p, o);
+    else DB.products.push(o);
+    logAudit(p ? 'Product updated' : 'Product created', n);
+    await saveDB();
+    closeModal();
+    toast('✅ Saved');
+    navigate('inventory');
+  };
+}
+
+function importProds() {
+  openM(`
+    <h3>📥 Import Products (CSV)</h3>
+    <p class="sub">Format: name,sku,category,qty,cost,rate,gst,hsn,barcode</p>
+    <textarea id="impTxt" style="min-height:120px" placeholder="Pen,PEN001,Stationery,100,5,10,18,9608,123456"></textarea>
+    <div class="acts" style="margin-top:10px">
+      <button class="btn btn-s" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-p" id="impGo">Import</button>
+    </div>
+  `);
+  $('impGo').onclick = async () => {
+    const lines = $('impTxt').value.split('\n').filter(l => l.trim());
+    let n = 0;
+    lines.forEach(l => {
+      const p = l.split(',');
+      if (p[0]) {
+        DB.products.push({
+          id: uid(), name: p[0].trim(),
+          sku: p[1]?.trim() || '',
+          category: p[2]?.trim() || '',
+          qty: num(p[3]), cost: num(p[4]),
+          rate: num(p[5]), gstRate: num(p[6]) || 18,
+          hsn: p[7]?.trim() || '', barcode: p[8]?.trim() || ''
+        });
+        n++;
+      }
+    });
+    logAudit('Bulk import', n + ' products');
+    await saveDB();
+    closeModal();
+    toast('✅ ' + n + ' imported');
+    navigate('inventory');
+  };
+}
+
+function exportProds() {
+  let csv = 'Name,SKU,Category,Qty,Cost,Rate,GST,HSN,Barcode\n';
+  DB.products.forEach(p => {
+    csv += `"${p.name}","${p.sku || ''}","${p.category || ''}",${p.qty},${p.cost || 0},${p.rate},${p.gstRate || 18},"${p.hsn || ''}","${p.barcode || ''}"\n`;
+  });
+  downloadBlob(new Blob([csv], { type: 'text/csv' }), 'products.csv');
+  toast('✅ Exported');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BATCHES
+   ═══════════════════════════════════════════════════════════════ */
+VIEWS.batch = function() {
+  return `
+    <div class="card">
+      <h3>🏷️ Batch / Lot Tracking</h3>
+      <p class="sub">Track expiry dates and lot numbers for pharma, food, and perishables.</p>
+      <div class="acts">
+        <button class="btn btn-p" id="btnNewBatch">+ Add Batch</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Batches (${DB.batches.length})</h3>
+      ${DB.batches.length ? `
+        <div class="scroll-list">
+          <table class="tbl">
+            <thead><tr><th>Product</th><th>Batch No</th><th>Expiry</th><th class="num">Qty</th><th></th></tr></thead>
+            <tbody>
+              ${DB.batches.map(b => {
+                const exp = new Date(b.expiry);
+                const days = Math.ceil((exp - new Date()) / 86400000);
+                return `
+                  <tr>
+                    <td>${esc(b.productName)}</td>
+                    <td>${esc(b.batchNo)}</td>
+                    <td style="color:${days < 30 ? 'var(--r)' : days < 90 ? 'var(--am)' : 'inherit'}">
+                      ${b.expiry}${days < 30 ? ` (${days}d)` : ''}
+                    </td>
+                    <td class="num">${b.qty}</td>
+                    <td><span class="btn btn-r btn-sm" onclick="delBatch('${b.id}')">✕</span></td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      ` : '<div class="empty">No batches tracked</div>'}
+    </div>
+  `;
+};
+
+BINDINGS.batch = function() {
+  $('btnNewBatch').onclick = newBatch;
+};
+
+window.delBatch = async function(id) {
+  DB.batches = DB.batches.filter(b => b.id !== id);
+  await saveDB();
+  toast('Deleted');
+  navigate('batch');
+};
+
+function newBatch() {
+  const prodOpts = DB.products.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
+  openM(`
+    <h3>🏷️ New Batch</h3>
+    <div class="fg"><label>Product</label><select id="bProd">${prodOpts}</select></div>
+    <div class="fg2">
+      <div class="fg"><label>Batch No</label><input id="bNo"></div>
+      <div class="fg"><label>Expiry</label><input type="date" id="bExp"></div>
+    </div>
+    <div class="fg"><label>Qty</label><input type="number" id="bQty" value="1"></div>
+    <div class="acts" style="margin-top:10px">
+      <button class="btn btn-s" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-p" id="bSave">Save</button>
+    </div>
+  `);
+  $('bSave').onclick = async () => {
+    const pid = $('bProd').value;
+    const p = DB.products.find(x => x.id === pid);
+    DB.batches.push({
+      id: uid(), productId: pid, productName: p ? p.name : '',
+      batchNo: $('bNo').value.trim(),
+      expiry: $('bExp').value,
+      qty: num($('bQty').value)
+    });
+    logAudit('Batch added', p?.name);
+    await saveDB();
+    closeModal();
+    toast('✅ Saved');
+    navigate('batch');
+  };
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SERIAL NUMBERS
+   ═══════════════════════════════════════════════════════════════ */
+VIEWS.serial = function() {
+  return `
+    <div class="card">
+      <h3>🔢 Serial Number Tracking</h3>
+      <p class="sub">Track individual units by serial number for electronics, machinery, and warranty management.</p>
+      <div class="acts">
+        <button class="btn btn-p" id="btnNewSerial">+ Add Serials</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Serials (${DB.serials.length})</h3>
+      ${DB.serials.length ? `
+        <div class="scroll-list">
+          <table class="tbl">
+            <thead><tr><th>Product</th><th>Serial No</th><th>Status</th><th>Date</th></tr></thead>
+            <tbody>
+              ${DB.serials.map(s => `
+                <tr>
+                  <td>${esc(s.productName)}</td>
+                  <td>${esc(s.serialNo)}</td>
+                  <td><span class="tag ${s.status === 'sold' ? 'tag-unpaid' : 'tag-paid'}">${s.status}</span></td>
+                  <td>${s.date || '-'}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      ` : '<div class="empty">No serials tracked</div>'}
+    </div>
+  `;
+};
+
+BINDINGS.serial = function() {
+  $('btnNewSerial').onclick = newSerial;
+};
+
+function newSerial() {
+  const prodOpts = DB.products.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
+  openM(`
+    <h3>🔢 Add Serial Numbers</h3>
+    <div class="fg"><label>Product</label><select id="snProd">${prodOpts}</select></div>
+    <div class="fg">
+      <label>Serial Numbers (one per line)</label>
+      <textarea id="snList" style="min-height:100px" placeholder="SN001&#10;SN002&#10;SN003"></textarea>
+    </div>
+    <div class="acts" style="margin-top:10px">
+      <button class="btn btn-s" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-p" id="snSave">Save</button>
+    </div>
+  `);
+  $('snSave').onclick = async () => {
+    const pid = $('snProd').value;
+    const p = DB.products.find(x => x.id === pid);
+    const serials = $('snList').value.split('\n').filter(l => l.trim());
+    serials.forEach(sn => {
+      DB.serials.push({
+        id: uid(), productId: pid, productName: p ? p.name : '',
+        serialNo: sn.trim(), status: 'in_stock', date: today()
+      });
+    });
+    logAudit('Serials added', serials.length + ' for ' + p?.name);
+    await saveDB();
+    closeModal();
+    toast('✅ ' + serials.length + ' serials added');
+    navigate('serial');
+  };
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   WAREHOUSES
+   ═══════════════════════════════════════════════════════════════ */
+VIEWS.warehouse = function() {
+  return `
+    <div class="card">
+      <h3>🏭 Warehouses</h3>
+      <div class="acts">
+        <button class="btn btn-p" id="btnNewWh">+ Warehouse</button>
+        <button class="btn btn-s" id="btnTransfer">🔄 Transfer</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Locations (${DB.warehouses.length})</h3>
+      <table class="tbl">
+        <thead><tr><th>Name</th><th>Address</th><th></th></tr></thead>
+        <tbody>
+          ${DB.warehouses.map(w => `
+            <tr>
+              <td>${esc(w.name)}</td>
+              <td>${esc(w.address || '-')}</td>
+              <td>${w.id !== 'default' ? `<span class="btn btn-r btn-sm" onclick="delWh('${w.id}')">✕</span>` : ''}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <h3>📋 Stock Movements (${DB.stockMoves.length})</h3>
+      ${DB.stockMoves.length ? `
+        <div class="scroll-list">
+          <table class="tbl">
+            <thead><tr><th>Date</th><th>Product</th><th>Type</th><th class="num">Qty</th><th>Ref</th></tr></thead>
+            <tbody>
+              ${[...DB.stockMoves].reverse().slice(0, 40).map(m => `
+                <tr>
+                  <td>${m.date}</td>
+                  <td>${esc(m.productName)}</td>
+                  <td><span class="tag ${m.qty > 0 ? 'tag-paid' : 'tag-unpaid'}">${m.type}</span></td>
+                  <td class="num">${m.qty > 0 ? '+' : ''}${m.qty}</td>
+                  <td>${esc(m.ref || '')}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      ` : '<div class="empty">No movements</div>'}
+    </div>
+  `;
+};
+
+BINDINGS.warehouse = function() {
+  $('btnNewWh').onclick = newWh;
+  $('btnTransfer').onclick = transferStock;
+};
+
+window.delWh = async function(id) {
+  DB.warehouses = DB.warehouses.filter(w => w.id !== id);
+  await saveDB();
+  toast('Deleted');
+  navigate('warehouse');
+};
+
+function newWh() {
+  openM(`
+    <h3>🏭 New Warehouse</h3>
+    <div class="fg"><label>Name</label><input id="whName"></div>
+    <div class="fg"><label>Address</label><input id="whAddr"></div>
+    <div class="acts" style="margin-top:10px">
+      <button class="btn btn-s" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-p" id="whSave">Save</button>
+    </div>
+  `);
+  $('whSave').onclick = async () => {
+    DB.warehouses.push({
+      id: uid(),
+      name: $('whName').value.trim() || 'Warehouse',
+      address: $('whAddr').value.trim()
+    });
+    await saveDB();
+    closeModal();
+    toast('✅ Saved');
+    navigate('warehouse');
+  };
+}
+
+function transferStock() {
+  const whOpts = DB.warehouses.map(w => `<option value="${w.id}">${esc(w.name)}</option>`).join('');
+  const prodOpts = DB.products.map(p =>
+    `<option value="${p.id}">${esc(p.name)} (Stock: ${p.qty})</option>`
+  ).join('');
+  openM(`
+    <h3>🔄 Stock Transfer</h3>
+    <div class="fg"><label>Product</label><select id="tsProd">${prodOpts}</select></div>
+    <div class="fg2">
+      <div class="fg"><label>From</label><select id="tsFrom">${whOpts}</select></div>
+      <div class="fg"><label>To</label><select id="tsTo">${whOpts}</select></div>
+    </div>
+    <div class="fg"><label>Qty</label><input type="number" id="tsQty" value="1"></div>
+    <div class="acts" style="margin-top:10px">
+      <button class="btn btn-s" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-p" id="tsGo">Transfer</button>
+    </div>
+  `);
+  $('tsGo').onclick = async () => {
+    const pid = $('tsProd').value;
+    const p = DB.products.find(x => x.id === pid);
+    const q = num($('tsQty').value);
+    const from = DB.warehouses.find(w => w.id === $('tsFrom').value);
+    const to = DB.warehouses.find(w => w.id === $('tsTo').value);
+    if (from.id === to.id) { toast('Same warehouse'); return; }
+    DB.stockMoves.push({
+      id: uid(), productId: pid, productName: p.name,
+      type: 'transfer', qty: -q, ref: from.name + '→' + to.name,
+      date: today(), warehouse: from.id
+    });
+    DB.stockMoves.push({
+      id: uid(), productId: pid, productName: p.name,
+      type: 'transfer', qty: q, ref: from.name + '→' + to.name,
+      date: today(), warehouse: to.id
+    });
+    logAudit('Transfer', p.name + ' ' + q + ' units');
+    await saveDB();
+    closeModal();
+    toast('✅ Transferred');
+    navigate('warehouse');
+  };
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CRM
+   ═══════════════════════════════════════════════════════════════ */
+VIEWS.customers = function() {
+  return `
+    <div class="card">
+      <h3>👥 Customer CRM</h3>
+      <div class="acts">
+        <button class="btn btn-p" id="btnNewCust">+ Customer</button>
+        <button class="btn btn-s" id="btnAging">📊 Aging Report</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Customers (${DB.customers.length})</h3>
+      ${DB.customers.length ? `
+        <div class="scroll-list">
+          <table class="tbl">
+            <thead><tr><th>Name</th><th>GSTIN</th><th class="num">Outstanding</th><th class="num">Limit</th><th></th></tr></thead>
+            <tbody>
+              ${DB.customers.map(c => {
+                const out = DB.invoices
+                  .filter(i => i.customerId === c.id)
+                  .reduce((s, i) => s + (i.total - i.paid), 0);
+                return `
+                  <tr>
+                    <td>${esc(c.name)}<br><span style="font-size:8px;color:var(--txt3)">${esc(c.phone || '')}</span></td>
+                    <td style="font-size:8.5px">${esc(c.gstin || '-')}</td>
+                    <td class="num" style="color:${out > 0 ? 'var(--r)' : 'var(--g)'}">₹${fmt(out)}</td>
+                    <td class="num">${c.creditLimit ? '₹' + fmt(c.creditLimit) : '—'}</td>
+                    <td><span class="btn btn-s btn-sm" onclick="editCust('${c.id}')">✏️</span></td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      ` : '<div class="empty">No customers yet</div>'}
+    </div>
+  `;
+};
+
+BINDINGS.customers = function() {
+  $('btnNewCust').onclick = () => custModal();
+  $('btnAging').onclick = agingReport;
+};
+
+window.editCust = function(id) {
+  custModal(DB.customers.find(c => c.id === id));
+};
+
+function custModal(c) {
+  const e = c || {};
+  openM(`
+    <h3>${c ? '✏️ Edit' : '👥 New'} Customer</h3>
+    <div class="fg"><label>Name *</label><input id="cName" value="${esc(e.name || '')}"></div>
+    <div class="fg2">
+      <div class="fg"><label>Phone</label><input id="cPhone" value="${esc(e.phone || '')}"></div>
+      <div class="fg"><label>Email</label><input id="cEmail" value="${esc(e.email || '')}"></div>
+    </div>
+    <div class="fg2">
+      <div class="fg"><label>GSTIN</label><input id="cGstin" value="${esc(e.gstin || '')}"></div>
+      <div class="fg"><label>State Code</label><input id="cState" value="${esc(e.stateCode || '')}"></div>
+    </div>
+    <div class="fg2">
+      <div class="fg"><label>Credit Limit (₹)</label><input type="number" id="cLimit" value="${e.creditLimit || 0}"></div>
+      <div class="fg"><label>Payment Terms (days)</label><input type="number" id="cTerms" value="${e.paymentTerms || 30}"></div>
+    </div>
+    <div class="fg"><label>Address</label><textarea id="cAddr">${esc(e.address || '')}</textarea></div>
+    <div class="acts" style="margin-top:10px">
+      <button class="btn btn-s" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-p" id="saveCust">Save</button>
+    </div>
+  `);
+  $('saveCust').onclick = async () => {
+    const n = $('cName').value.trim();
+    if (!n) { toast('Name required'); return; }
+    const o = {
+      id: c ? c.id : uid(),
+      name: n,
+      phone: $('cPhone').value.trim(),
+      email: $('cEmail').value.trim(),
+      gstin: $('cGstin').value.trim(),
+      stateCode: $('cState').value.trim(),
+      creditLimit: num($('cLimit').value),
+      paymentTerms: num($('cTerms').value),
+      address: $('cAddr').value.trim()
+    };
+    if (c) Object.assign(c, o);
+    else DB.customers.push(o);
+    logAudit(c ? 'Customer updated' : 'Customer created', n);
+    await saveDB();
+    closeModal();
+    toast('✅ Saved');
+    navigate('customers');
+  };
+}
+
+function agingReport() {
+  const buckets = { '0-30': 0, '31-60': 0, '61-90': 0, '90+': 0 };
+  DB.invoices.forEach(i => {
+    const bal = i.total - i.paid;
+    if (bal <= 0) return;
+    const days = Math.ceil((new Date() - new Date(i.date)) / 86400000);
+    if (days <= 30) buckets['0-30'] += bal;
+    else if (days <= 60) buckets['31-60'] += bal;
+    else if (days <= 90) buckets['61-90'] += bal;
+    else buckets['90+'] += bal;
+  });
+  openM(`
+    <h3>📊 Receivables Aging</h3>
+    <table class="tbl">
+      <thead><tr><th>Age</th><th class="num">Amount</th></tr></thead>
+      <tbody>
+        <tr><td>0-30 days</td><td class="num" style="color:var(--g)">₹${fmt(buckets['0-30'])}</td></tr>
+        <tr><td>31-60 days</td><td class="num" style="color:var(--am)">₹${fmt(buckets['31-60'])}</td></tr>
+        <tr><td>61-90 days</td><td class="num" style="color:var(--r)">₹${fmt(buckets['61-90'])}</td></tr>
+        <tr><td>90+ days</td><td class="num" style="color:var(--r)">₹${fmt(buckets['90+'])}</td></tr>
+      </tbody>
+    </table>
+    <div class="acts" style="margin-top:12px">
+      <button class="btn btn-p" onclick="closeModal()">Close</button>
+    </div>
+  `);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SUPPLIERS
+   ═══════════════════════════════════════════════════════════════ */
+VIEWS.suppliers = function() {
+  return `
+    <div class="card">
+      <h3>🔗 Suppliers</h3>
+      <div class="acts">
+        <button class="btn btn-p" id="btnNewSup">+ Supplier</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Suppliers (${DB.suppliers.length})</h3>
+      ${DB.suppliers.length ? `
+        <div class="scroll-list">
+          <table class="tbl">
+            <thead><tr><th>Name</th><th>GSTIN</th><th>Phone</th><th class="num">Payable</th><th></th></tr></thead>
+            <tbody>
+              ${DB.suppliers.map(s => {
+                const pay = DB.purchases
+                  .filter(p => p.supplierId === s.id)
+                  .reduce((t, p) => t + (p.total || 0), 0);
+                return `
+                  <tr>
+                    <td>${esc(s.name)}</td>
+                    <td style="font-size:8.5px">${esc(s.gstin || '-')}</td>
+                    <td>${esc(s.phone || '-')}</td>
+                    <td class="num">₹${fmt(pay)}</td>
+                    <td><span class="btn btn-s btn-sm" onclick="editSup('${s.id}')">✏️</span></td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      ` : '<div class="empty">No suppliers yet</div>'}
+    </div>
+  `;
+};
+
+BINDINGS.suppliers = function() {
+  $('btnNewSup').onclick = () => supModal();
+};
+
+window.editSup = function(id) {
+  supModal(DB.suppliers.find(s => s.id === id));
+};
+
+function supModal(s) {
+  const e = s || {};
+  openM(`
+    <h3>${s ? '✏️ Edit' : '🔗 New'} Supplier</h3>
+    <div class="fg"><label>Name *</label><input id="sName" value="${esc(e.name || '')}"></div>
+    <div class="fg2">
+      <div class="fg"><label>Phone</label><input id="sPhone" value="${esc(e.phone || '')}"></div>
+      <div class="fg"><label>GSTIN</label><input id="sGstin" value="${esc(e.gstin || '')}"></div>
+    </div>
+    <div class="fg"><label>Address</label><textarea id="sAddr">${esc(e.address || '')}</textarea></div>
+    <div class="acts" style="margin-top:10px">
+      <button class="btn btn-s" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-p" id="saveSup">Save</button>
+    </div>
+  `);
+  $('saveSup').onclick = async () => {
+    const n = $('sName').value.trim();
+    if (!n) { toast('Name required'); return; }
+    const o = {
+      id: s ? s.id : uid(), name: n,
+      phone: $('sPhone').value.trim(),
+      gstin: $('sGstin').value.trim(),
+      address: $('sAddr').value.trim()
+    };
+    if (s) Object.assign(s, o);
+    else DB.suppliers.push(o);
+    await saveDB();
+    closeModal();
+    toast('✅ Saved');
+    navigate('suppliers');
+  };
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PURCHASE
+   ═══════════════════════════════════════════════════════════════ */
+VIEWS.purchase = function() {
+  const pos = [...DB.purchases].sort((a, b) => b.date?.localeCompare(a.date));
+  return `
+    <div class="card">
+      <h3>📋 Purchase Orders</h3>
+      <div class="acts">
+        <button class="btn btn-p" id="btnNewPO">+ New PO</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>All POs (${pos.length})</h3>
+      ${pos.length ? `
+        <div class="scroll-list">
+          <table class="tbl">
+            <thead><tr><th>PO #</th><th>Supplier</th><th class="num">Total</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+              ${pos.map(p => `
+                <tr>
+                  <td>${esc(p.number)}</td>
+                  <td>${esc(p.supplierName)}</td>
+                  <td class="num">₹${fmt(p.total)}</td>
+                  <td><span class="tag tag-${p.status || 'draft'}">${(p.status || 'draft').toUpperCase()}</span></td>
+                  <td>${p.status !== 'received' ? `<span class="btn btn-g btn-sm" onclick="receivePO('${p.id}')">✓ GRN</span>` : '<span class="tag tag-paid">DONE</span>'}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      ` : '<div class="empty">No purchase orders yet</div>'}
+    </div>
+  `;
+};
+
+BINDINGS.purchase = function() {
+  $('btnNewPO').onclick = newPO;
+};
+
+window.receivePO = async function(id) {
+  const po = DB.purchases.find(p => p.id === id);
+  if (!po) return;
+  po.status = 'received';
+  po.items.forEach(it => {
+    let p = DB.products.find(x => x.name === it.name);
+    if (!p) {
+      p = {
+        id: uid(), name: it.name, qty: 0, minQty: 5,
+        cost: it.cost, rate: it.cost * 1.3, gstRate: 18,
+        sku: '', category: '', hsn: '', barcode: ''
+      };
+      DB.products.push(p);
+    }
+    p.qty = num(p.qty) + it.qty;
+    DB.stockMoves.push({
+      id: uid(), productId: p.id, productName: p.name,
+      type: 'purchase', qty: it.qty, ref: po.number,
+      date: today(), warehouse: 'default'
+    });
+  });
+  DB.journal.push({
+    id: uid(), date: today(), ref: po.number, type: 'purchase',
+    debit: 'Inventory', credit: 'Accounts Payable',
+    amount: po.total, created: nowStr()
+  });
+  logAudit('GRN received', po.number);
+  await saveDB();
+  toast('✅ Stock received');
+  navigate('purchase');
+};
+
+function newPO() {
+  const supOpts = DB.suppliers.map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join('');
+  openM(`
+    <h3>📋 New Purchase Order</h3>
+    <div class="fg"><label>Supplier</label><select id="poSup"><option value="">— Select —</option>${supOpts}</select></div>
+    <div class="fg2">
+      <div class="fg"><label>Date</label><input type="date" id="poDate" value="${today()}"></div>
+      <div class="fg"><label>Expected</label><input type="date" id="poExp" value="${today()}"></div>
+    </div>
+    <div class="sec">Items</div>
+    <div id="poItems"></div>
+    <button class="btn btn-s btn-full btn-sm" id="poAdd" style="margin-top:4px">+ Add Item</button>
+    <div class="acts" style="margin-top:9px">
+      <button class="btn btn-s" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-p" id="poSave">Create PO</button>
+    </div>
+  `);
+  let n = 0;
+  function addL() {
+    n++;
+    const d = document.createElement('div');
+    d.className = 'fg';
+    d.innerHTML = `
+      <div class="fg2">
+        <input placeholder="Item name" class="po-name">
+        <input type="number" placeholder="Qty" class="po-qty" value="1">
+      </div>
+      <div class="fg2" style="margin-top:3px">
+        <input type="number" placeholder="Cost" class="po-cost" value="0">
+        <button class="btn btn-r btn-sm" onclick="this.parentElement.parentElement.remove()">✕</button>
+      </div>
+    `;
+    $('poItems').appendChild(d);
+  }
+  addL();
+  $('poAdd').onclick = addL;
+  $('poSave').onclick = async () => {
+    const sid = $('poSup').value;
+    const sup = DB.suppliers.find(s => s.id === sid);
+    if (!sup) { toast('Select supplier'); return; }
+    const items = [];
+    let total = 0;
+    $('poItems').querySelectorAll('.fg').forEach(d => {
+      const nm = d.querySelector('.po-name').value.trim();
+      if (nm) {
+        const q = num(d.querySelector('.po-qty').value);
+        const c = num(d.querySelector('.po-cost').value);
+        total += q * c;
+        items.push({ name: nm, qty: q, cost: c });
+      }
+    });
+    if (!items.length) { toast('Add items'); return; }
+    DB.purchases.push({
+      id: uid(),
+      number: 'PO-' + String(DB.purchases.length + 1).padStart(4, '0'),
+      supplierId: sid, supplierName: sup.name,
+      date: $('poDate').value, expected: $('poExp').value,
+      items, total, status: 'draft', created: nowStr()
+    });
+    logAudit('PO created', '₹' + fmt(total));
+    await saveDB();
+    closeModal();
+    toast('✅ PO created');
+    navigate('purchase');
+  };
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MANUFACTURING / BOM
+   ═══════════════════════════════════════════════════════════════ */
+VIEWS.manufacturing = function() {
+  return `
+    <div class="card">
+      <h3>🏗️ Bill of Materials (BOM)</h3>
+      <p class="sub">Define what raw materials go into making a finished product.</p>
+      <div class="acts">
+        <button class="btn btn-p" id="btnNewBOM">+ New BOM</button>
+        <button class="btn btn-s" id="btnWorkOrder">🏭 Work Order</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>BOMs (${DB.boms.length})</h3>
+      ${DB.boms.length ? `
+        <div class="scroll-list">
+          <table class="tbl">
+            <thead><tr><th>Product</th><th>Materials</th><th class="num">Cost</th><th></th></tr></thead>
+            <tbody>
+              ${DB.boms.map(b => `
+                <tr>
+                  <td>${esc(b.productName)}</td>
+                  <td>${b.materials.length} items</td>
+                  <td class="num">₹${fmt(b.totalCost)}</td>
+                  <td><span class="btn btn-r btn-sm" onclick="delBOM('${b.id}')">✕</span></td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      ` : '<div class="empty">No BOMs defined</div>'}
+    </div>
+    <div class="card">
+      <h3>🏭 Work Orders (${DB.workOrders.length})</h3>
+      ${DB.workOrders.length ? `
+        <table class="tbl">
+          <thead><tr><th>Product</th><th class="num">Qty</th><th>Status</th><th></th></tr></thead>
+          <tbody>
+            ${DB.workOrders.map(w => `
+              <tr>
+                <td>${esc(w.productName)}</td>
+                <td class="num">${w.qty}</td>
+                <td><span class="tag ${w.status === 'completed' ? 'tag-paid' : 'tag-partial'}">${w.status}</span></td>
+                <td>${w.status !== 'completed' ? `<span class="btn btn-g btn-sm" onclick="completeWO('${w.id}')">✓ Complete</span>` : ''}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      ` : '<div class="empty">No work orders</div>'}
+    </div>
+  `;
+};
+
+BINDINGS.manufacturing = function() {
+  $('btnNewBOM').onclick = newBOM;
+  $('btnWorkOrder').onclick = newWorkOrder;
+};
+
+window.delBOM = async function(id) {
+  DB.boms = DB.boms.filter(b => b.id !== id);
+  await saveDB();
+  toast('Deleted');
+  navigate('manufacturing');
+};
+
+function newBOM() {
+  const prodOpts = DB.products.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
+  openM(`
+    <h3>🏗️ New BOM</h3>
+    <div class="fg"><label>Finished Product</label><select id="bomProd">${prodOpts}</select></div>
+    <div class="sec">Materials</div>
+    <div id="bomMats"></div>
+    <button class="btn btn-s btn-full btn-sm" id="bomAdd" style="margin-top:4px">+ Add Material</button>
+    <div class="acts" style="margin-top:9px">
+      <button class="btn btn-s" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-p" id="bomSave">Save BOM</button>
+    </div>
+  `);
+  let n = 0;
+  function addM() {
+    n++;
+    const pOpts = DB.products.map(p =>
+      `<option value="${p.id}">${esc(p.name)} (₹${p.cost || p.rate})</option>`
+    ).join('');
+    const d = document.createElement('div');
+    d.className = 'fg';
+    d.innerHTML = `
+      <div class="fg3">
+        <select class="bm-prod"><option value="">— Material —</option>${pOpts}</select>
+        <input type="number" class="bm-qty" value="1" placeholder="Qty">
+        <button class="btn btn-r btn-sm" onclick="this.parentElement.parentElement.remove()">✕</button>
+      </div>
+    `;
+    $('bomMats').appendChild(d);
+  }
+  addM();
+  $('bomAdd').onclick = addM;
+  $('bomSave').onclick = async () => {
+    const pid = $('bomProd').value;
+    const p = DB.products.find(x => x.id === pid);
+    if (!p) { toast('Select product'); return; }
+    const materials = [];
+    let totalCost = 0;
+    $('bomMats').querySelectorAll('.fg').forEach(d => {
+      const mid = d.querySelector('.bm-prod').value;
+      const m = DB.products.find(x => x.id === mid);
+      if (m) {
+        const q = num(d.querySelector('.bm-qty').value);
+        const c = num(m.cost || m.rate);
+        totalCost += q * c;
+        materials.push({ productId: mid, name: m.name, qty: q, cost: c });
+      }
+    });
+    if (!materials.length) { toast('Add materials'); return; }
+    DB.boms.push({
+      id: uid(), productId: pid, productName: p.name,
+      materials, totalCost
+    });
+    logAudit('BOM created', p.name);
+    await saveDB();
+    closeModal();
+    toast('✅ BOM saved');
+    navigate('manufacturing');
+  };
+}
+
+function newWorkOrder() {
+  const bomOpts = DB.boms.map(b =>
+    `<option value="${b.id}">${esc(b.productName)}</option>`
+  ).join('');
+  openM(`
+    <h3>🏭 New Work Order</h3>
+    <div class="fg"><label>BOM</label><select id="woBom">${bomOpts}</select></div>
+    <div class="fg"><label>Quantity to Produce</label><input type="number" id="woQty" value="1"></div>
+    <div class="acts" style="margin-top:10px">
+      <button class="btn btn-s" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-p" id="woSave">Create</button>
+    </div>
+  `);
+  $('woSave').onclick = async () => {
+    const bid = $('woBom').value;
+    const bom = DB.boms.find(b => b.id === bid);
+    if (!bom) { toast('Select BOM'); return; }
+    DB.workOrders.push({
+      id: uid(), bomId: bid,
+      productId: bom.productId, productName: bom.productName,
+      qty: num($('woQty').value), status: 'planned', date: today()
+    });
+    logAudit('Work order created', bom.productName);
+    await saveDB();
+    closeModal();
+    toast('✅ Work order created');
+    navigate('manufacturing');
+  };
+}
+
+window.completeWO = async function(id) {
+  const wo = DB.workOrders.find(w => w.id === id);
+  if (!wo) return;
+  const bom = DB.boms.find(b => b.id === wo.bomId);
+  if (bom) {
+    bom.materials.forEach(m => {
+      const p = DB.products.find(x => x.id === m.productId);
+      if (p) p.qty = num(p.qty) - m.qty * wo.qty;
+    });
+    const fp = DB.products.find(x => x.id === wo.productId);
+    if (fp) fp.qty = num(fp.qty) + wo.qty;
+  }
+  wo.status = 'completed';
+  logAudit('WO completed', wo.productName);
+  await saveDB();
+  toast('✅ Work order completed');
+  navigate('manufacturing');
+};
+
+/* ═══════════════════════════════════════════════════════════════
+   EXPENSES
+   ═══════════════════════════════════════════════════════════════ */
+VIEWS.expenses = function() {
+  const tot = DB.expenses.reduce((s, e) => s + num(e.amount), 0);
+  return `
+    <div class="kpis">
+      <div class="kpi a"><div class="kl">Total</div><div class="kv">₹${fmt(tot)}</div><div class="kd">${DB.expenses.length} entries</div></div>
+      <div class="kpi g"><div class="kl">ITC Available</div><div class="kv">₹${fmt(DB.expenses.filter(e => e.itc).reduce((s, e) => s + num(e.gst), 0))}</div></div>
+    </div>
+    <div class="card">
+      <h3>💸 Expenses</h3>
+      <div class="acts">
+        <button class="btn btn-p" id="btnNewExp">+ Expense</button>
+        <button class="btn btn-s" id="btnRecurring">🔁 Recurring</button>
+      </div>
+    </div>
+    <div class="card">
+      ${DB.expenses.length ? `
+        <div class="scroll-list">
+          <table class="tbl">
+            <thead><tr><th>Date</th><th>Category</th><th>Desc</th><th class="num">Amount</th><th>ITC</th></tr></thead>
+            <tbody>
+              ${[...DB.expenses].reverse().map(e => `
+                <tr>
+                  <td>${e.date}</td>
+                  <td>${esc(e.category || '-')}</td>
+                  <td>${esc(e.description || '')}</td>
+                  <td class="num">₹${fmt(e.amount)}</td>
+                  <td>${e.itc ? '<span class="tag tag-paid">YES</span>' : '—'}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      ` : '<div class="empty">No expenses recorded</div>'}
+    </div>
+  `;
+};
+
+BINDINGS.expenses = function() {
+  $('btnNewExp').onclick = newExp;
+  $('btnRecurring').onclick = showRecurring;
+};
+
+function newExp() {
+  const cats = ['Rent', 'Utilities', 'Salaries', 'Marketing', 'Travel',
+    'Office Supplies', 'Professional Fees', 'Maintenance', 'Insurance', 'Other'];
+  openM(`
+    <h3>💸 Add Expense</h3>
+    <div class="fg2">
+      <div class="fg"><label>Date</label><input type="date" id="eDate" value="${today()}"></div>
+      <div class="fg"><label>Category</label>
+        <select id="eCat">${cats.map(c => `<option>${c}</option>`).join('')}</select>
+      </div>
+    </div>
+    <div class="fg"><label>Description</label><input id="eDesc"></div>
+    <div class="fg2">
+      <div class="fg"><label>Amount</label><input type="number" id="eAmt"></div>
+      <div class="fg"><label>GST Paid</label><input type="number" id="eGst" value="0"></div>
+    </div>
+    <div class="fg"><label><input type="checkbox" id="eItc"> Claim ITC (Input Tax Credit)</label></div>
+    <div class="acts" style="margin-top:10px">
+      <button class="btn btn-s" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-p" id="eSave">Save</button>
+    </div>
+  `);
+  $('eSave').onclick = async () => {
+    const a = num($('eAmt').value);
+    if (a <= 0) { toast('Enter amount'); return; }
+    DB.expenses.push({
+      id: uid(), date: $('eDate').value, category: $('eCat').value,
+      description: $('eDesc').value.trim(), amount: a,
+      gst: num($('eGst').value), itc: $('eItc').checked
+    });
+    logAudit('Expense', '₹' + fmt(a) + ' ' + $('eCat').value);
+    await saveDB();
+    closeModal();
+    toast('✅ Saved');
+    navigate('expenses');
+  };
+}
+
+function showRecurring() {
+  const r = DB.recurring;
+  openM(`
+    <h3>🔁 Recurring Invoices</h3>
+    <p class="sub">Set up automatic invoice generation for subscription-based services.</p>
+    ${r.length ? `
+      <table class="tbl">
+        <thead><tr><th>Customer</th><th class="num">Amount</th><th>Frequency</th><th>Next</th></tr></thead>
+        <tbody>
+          ${r.map(x => `
+            <tr>
+              <td>${esc(x.customerName)}</td>
+              <td class="num">₹${fmt(x.amount)}</td>
+              <td>${x.frequency}</td>
+              <td>${x.nextDate}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    ` : '<div class="empty">No recurring invoices</div>'}
+    <div class="acts" style="margin-top:10px">
+      <button class="btn btn-p btn-full" onclick="addRecurring()">+ Add Recurring Invoice</button>
+    </div>
+  `);
+}
+
+window.addRecurring = function() {
+  const custOpts = DB.customers.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('');
+  openM(`
+    <h3>🔁 New Recurring Invoice</h3>
+    <div class="fg"><label>Customer</label><select id="rcCust">${custOpts}</select></div>
+    <div class="fg2">
+      <div class="fg"><label>Amount</label><input type="number" id="rcAmt"></div>
+      <div class="fg"><label>Frequency</label>
+        <select id="rcFreq">
+          <option value="monthly">Monthly</option>
+          <option value="quarterly">Quarterly</option>
+          <option value="yearly">Yearly</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg"><label>Next Date</label><input type="date" id="rcNext" value="${today()}"></div>
+    <div class="acts" style="margin-top:10px">
+      <button class="btn btn-s" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-p" id="rcSave">Save</button>
+    </div>
+  `);
+  $('rcSave').onclick = async () => {
+    const cid = $('rcCust').value;
+    const c = DB.customers.find(x => x.id === cid);
+    DB.recurring.push({
+      id: uid(), customerId: cid,
+      customerName: c ? c.name : '',
+      amount: num($('rcAmt').value),
+      frequency: $('rcFreq').value,
+      nextDate: $('rcNext').value
+    });
+    await saveDB();
+    closeModal();
+    toast('✅ Recurring added');
+    navigate('expenses');
+  };
+};
+
+/* ═══════════════════════════════════════════════════════════════
+   ACCOUNTING
+   ═══════════════════════════════════════════════════════════════ */
+VIEWS.accounting = function() {
+  const j = [...DB.journal].reverse();
+  const tb = {};
+  DB.journal.forEach(e => {
+    if (!tb[e.debit]) tb[e.debit] = 0;
+    if (!tb[e.credit]) tb[e.credit] = 0;
+    tb[e.debit] += e.amount;
+  });
+  return `
+    <div class="card">
+      <h3>📒 Double-Entry Journal</h3>
+      <div class="acts">
+        <button class="btn btn-s" id="btnManualJ">+ Manual Entry</button>
+        <button class="btn btn-s" id="btnPL">📊 P&L</button>
+        <button class="btn btn-s" id="btnBS">⚖️ Balance Sheet</button>
+        <button class="btn btn-s" id="btnCF">💰 Cash Flow</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Entries (${j.length})</h3>
+      ${j.length ? `
+        <div class="scroll-list">
+          <table class="tbl">
+            <thead><tr><th>Date</th><th>Ref</th><th>Debit</th><th>Credit</th><th class="num">Amt</th></tr></thead>
+            <tbody>
+              ${j.slice(0, 50).map(e => `
+                <tr>
+                  <td>${e.date}</td>
+                  <td>${esc(e.ref || '')}</td>
+                  <td>${esc(e.debit)}</td>
+                  <td>${esc(e.credit)}</td>
+                  <td class="num">₹${fmt(e.amount)}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      ` : '<div class="empty">No entries yet</div>'}
+    </div>
+    <div class="card">
+      <h3>📊 Trial Balance</h3>
+      <table class="tbl">
+        <thead><tr><th>Account</th><th class="num">Debit</th></tr></thead>
+        <tbody>
+          ${Object.entries(tb).filter(([k, v]) => v !== 0).map(([k, v]) => `
+            <tr><td>${esc(k)}</td><td class="num">₹${fmt(v)}</td></tr>
+          `).join('') || '<tr><td colspan="2" class="empty">No data</td></tr>'}
+        </tbody>
+      </table>
+    </div>
+  `;
+};
+
+BINDINGS.accounting = function() {
+  $('btnManualJ').onclick = manualJ;
+  $('btnPL').onclick = showPL;
+  $('btnBS').onclick = showBS;
+  $('btnCF').onclick = showCF;
+};
+
+function manualJ() {
+  openM(`
+    <h3>📒 Manual Journal Entry</h3>
+    <div class="fg2">
+      <div class="fg"><label>Date</label><input type="date" id="jDate" value="${today()}"></div>
+      <div class="fg"><label>Ref</label><input id="jRef"></div>
+    </div>
+    <div class="fg2">
+      <div class="fg"><label>Debit</label><input id="jDr"></div>
+      <div class="fg"><label>Credit</label><input id="jCr"></div>
+    </div>
+    <div class="fg"><label>Amount</label><input type="number" id="jAmt"></div>
+    <div class="acts" style="margin-top:10px">
+      <button class="btn btn-s" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-p" id="jSave">Post</button>
+    </div>
+  `);
+  $('jSave').onclick = async () => {
+    const a = num($('jAmt').value);
+    if (a <= 0) { toast('Enter amount'); return; }
+    DB.journal.push({
+      id: uid(), date: $('jDate').value,
+      ref: $('jRef').value.trim(),
+      debit: $('jDr').value.trim(),
+      credit: $('jCr').value.trim(),
+      amount: a, created: nowStr()
+    });
+    await saveDB();
+    closeModal();
+    toast('✅ Posted');
+    navigate('accounting');
+  };
+}
+
+function showPL() {
+  const sales = DB.invoices.reduce((s, i) => s + (i.taxable || 0), 0);
+  const purchases = DB.purchases.reduce((s, p) => s + (p.total || 0), 0);
+  const exp = DB.expenses.reduce((s, e) => s + num(e.amount), 0);
+  const gross = sales - purchases;
+  const net = gross - exp;
+  openM(`
+    <h3>📊 Profit & Loss Statement</h3>
+    <table class="tbl">
+      <tbody>
+        <tr><td>Revenue (Taxable)</td><td class="num" style="color:var(--g)">₹${fmt(sales)}</td></tr>
+        <tr><td>Cost of Goods Sold</td><td class="num" style="color:var(--r)">−₹${fmt(purchases)}</td></tr>
+        <tr style="font-weight:800"><td>Gross Profit</td><td class="num">₹${fmt(gross)}</td></tr>
+        <tr><td>Operating Expenses</td><td class="num" style="color:var(--r)">−₹${fmt(exp)}</td></tr>
+        <tr style="font-weight:800;font-size:13px">
+          <td>Net Profit</td>
+          <td class="num" style="color:${net >= 0 ? 'var(--g)' : 'var(--r)'}">₹${fmt(net)}</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="acts" style="margin-top:12px">
+      <button class="btn btn-p" onclick="closeModal()">Close</button>
+    </div>
+  `);
+}
+
+function showBS() {
+  const sales = DB.invoices.reduce((s, i) => s + (i.total || 0), 0);
+  const paid = DB.invoices.reduce((s, i) => s + (i.paid || 0), 0);
+  const ar = sales - paid;
+  const stock = DB.products.reduce((s, p) => s + num(p.qty) * num(p.cost), 0);
+  const cash = DB.bankAccounts.reduce((s, b) => s + num(b.balance), 0);
+  const fixed = DB.assets.reduce((s, a) => s + num(a.cost) - num(a.depreciated || 0), 0);
+  openM(`
+    <h3>⚖️ Balance Sheet</h3>
+    <table class="tbl">
+      <thead><tr><th>Assets</th><th class="num">Amount</th></tr></thead>
+      <tbody>
+        <tr><td>Cash & Bank</td><td class="num">₹${fmt(cash)}</td></tr>
+        <tr><td>Accounts Receivable</td><td class="num">₹${fmt(ar)}</td></tr>
+        <tr><td>Inventory</td><td class="num">₹${fmt(stock)}</td></tr>
+        <tr><td>Fixed Assets (net)</td><td class="num">₹${fmt(fixed)}</td></tr>
+        <tr style="font-weight:800"><td>Total Assets</td><td class="num">₹${fmt(cash + ar + stock + fixed)}</td></tr>
+      </tbody>
+    </table>
+    <div class="acts" style="margin-top:12px">
+      <button class="btn btn-p" onclick="closeModal()">Close</button>
+    </div>
+  `);
+}
+
+function showCF() {
+  const inflow = DB.payments.filter(p => p.type === 'receipt').reduce((s, p) => s + num(p.amount), 0);
+  const outflow = DB.expenses.reduce((s, e) => s + num(e.amount), 0);
+  openM(`
+    <h3>💰 Cash Flow Statement</h3>
+    <table class="tbl">
+      <tbody>
+        <tr><td>Cash Inflows</td><td class="num" style="color:var(--g)">₹${fmt(inflow)}</td></tr>
+        <tr><td>Cash Outflows</td><td class="num" style="color:var(--r)">−₹${fmt(outflow)}</td></tr>
+        <tr style="font-weight:800">
+          <td>Net Cash Flow</td>
+          <td class="num" style="color:${inflow - outflow >= 0 ? 'var(--g)' : 'var(--r)'}">₹${fmt(inflow - outflow)}</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="acts" style="margin-top:12px">
+      <button class="btn btn-p" onclick="closeModal()">Close</button>
+    </div>
+  `);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BANKING
+   ═══════════════════════════════════════════════════════════════ */
+VIEWS.banking = function() {
+  return `
+    <div class="card">
+      <h3>🏦 Bank Accounts</h3>
+      <div class="acts">
+        <button class="btn btn-p" id="btnNewBank">+ Account</button>
+        <button class="btn btn-s" id="btnBankImport">📥 Import Statement</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Accounts (${DB.bankAccounts.length})</h3>
+      ${DB.bankAccounts.length ? `
+        <table class="tbl">
+          <thead><tr><th>Name</th><th>Type</th><th class="num">Balance</th></tr></thead>
+          <tbody>
+            ${DB.bankAccounts.map(b => `
+              <tr>
+                <td>${esc(b.name)}</td>
+                <td>${b.type}</td>
+                <td class="num">₹${fmt(b.balance)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      ` : '<div class="empty">No bank accounts</div>'}
+    </div>
+    <div class="card">
+      <h3>📋 Transactions (${DB.bankTransactions.length})</h3>
+      ${DB.bankTransactions.length ? `
+        <div class="scroll-list">
+          <table class="tbl">
+            <thead><tr><th>Date</th><th>Description</th><th class="num">Amount</th><th>Type</th></tr></thead>
+            <tbody>
+              ${[...DB.bankTransactions].reverse().slice(0, 30).map(t => `
+                <tr>
+                  <td>${t.date}</td>
+                  <td>${esc(t.description)}</td>
+                  <td class="num" style="color:${t.amount > 0 ? 'var(--g)' : 'var(--r)'}">
+                    ${t.amount > 0 ? '+' : ''}₹${fmt(Math.abs(t.amount))}
+                  </td>
+                  <td><span class="tag ${t.amount > 0 ? 'tag-paid' : 'tag-unpaid'}">${t.amount > 0 ? 'credit' : 'debit'}</span></td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      ` : '<div class="empty">No transactions</div>'}
+    </div>
+  `;
+};
+
+BINDINGS.banking = function() {
+  $('btnNewBank').onclick = newBank;
+  $('btnBankImport').onclick = importBankStmt;
+};
+
+function newBank() {
+  openM(`
+    <h3>🏦 New Bank Account</h3>
+    <div class="fg"><label>Account Name</label><input id="bkName"></div>
+    <div class="fg2">
+      <div class="fg"><label>Type</label>
+        <select id="bkType">
+          <option>Current</option>
+          <option>Savings</option>
+          <option>Cash</option>
+        </select>
+      </div>
+      <div class="fg"><label>Opening Balance</label><input type="number" id="bkBal" value="0"></div>
+    </div>
+    <div class="fg"><label>Account Number</label><input id="bkNo"></div>
+    <div class="acts" style="margin-top:10px">
+      <button class="btn btn-s" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-p" id="bkSave">Save</button>
+    </div>
+  `);
+  $('bkSave').onclick = async () => {
+    DB.bankAccounts.push({
+      id: uid(),
+      name: $('bkName').value.trim() || 'Account',
+      type: $('bkType').value,
+      balance: num($('bkBal').value),
+      accountNo: $('bkNo').value.trim()
+    });
+    await saveDB();
+    closeModal();
+    toast('✅ Saved');
+    navigate('banking');
+  };
+}
+
+function importBankStmt() {
+  openM(`
+    <h3>📥 Import Bank Statement</h3>
+    <p class="sub">Paste CSV lines: date,description,amount (positive for credit, negative for debit)</p>
+    <textarea id="stmtTxt" style="min-height:120px" placeholder="2025-01-15,Payment received,50000&#10;2025-01-16,Office rent,-15000"></textarea>
+    <div class="acts" style="margin-top:10px">
+      <button class="btn btn-s" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-p" id="stmtGo">Import</button>
+    </div>
+  `);
+  $('stmtGo').onclick = async () => {
+    const lines = $('stmtTxt').value.split('\n').filter(l => l.trim());
+    let n = 0;
+    lines.forEach(l => {
+      const p = l.split(',');
+      if (p.length >= 3) {
+        DB.bankTransactions.push({
+          id: uid(), date: p[0].trim(),
+          description: p[1].trim(), amount: num(p[2]),
+          reconciled: false
+        });
+        n++;
+      }
+    });
+    logAudit('Bank import', n + ' transactions');
+    await saveDB();
+    closeModal();
+    toast('✅ ' + n + ' imported');
+    navigate('banking');
+  };
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ASSETS
+   ═══════════════════════════════════════════════════════════════ */
+VIEWS.assets = function() {
+  return `
+    <div class="card">
+      <h3>🏢 Fixed Assets</h3>
+      <p class="sub">Track machinery, vehicles, furniture, and compute depreciation.</p>
+      <div class="acts">
+        <button class="btn btn-p" id="btnNewAsset">+ Asset</button>
+        <button class="btn btn-s" id="btnDepreciation">📉 Run Depreciation</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Assets (${DB.assets.length})</h3>
+      ${DB.assets.length ? `
+        <div class="scroll-list">
+          <table class="tbl">
+            <thead><tr><th>Name</th><th>Category</th><th class="num">Cost</th><th class="num">Book Value</th><th>Date</th></tr></thead>
+            <tbody>
+              ${DB.assets.map(a => {
+                const bv = num(a.cost) - num(a.depreciated || 0);
+                return `
+                  <tr>
+                    <td>${esc(a.name)}</td>
+                    <td>${esc(a.category || '-')}</td>
+                    <td class="num">₹${fmt(a.cost)}</td>
+                    <td class="num">₹${fmt(bv)}</td>
+                    <td>${a.purchaseDate || '-'}</td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      ` : '<div class="empty">No assets yet</div>'}
+    </div>
+  `;
+};
+
+BINDINGS.assets = function() {
+  $('btnNewAsset').onclick = newAsset;
+  $('btnDepreciation').onclick = runDepreciation;
+};
+
+function newAsset() {
+  const cats = ['Machinery', 'Furniture', 'Vehicles', 'Computers', 'Buildings', 'Other'];
+  openM(`
+    <h3>🏢 New Asset</h3>
+    <div class="fg"><label>Asset Name</label><input id="asName"></div>
+    <div class="fg2">
+      <div class="fg"><label>Category</label>
+        <select id="asCat">${cats.map(c => `<option>${c}</option>`).join('')}</select>
+      </div>
+      <div class="fg"><label>Purchase Date</label><input type="date" id="asDate" value="${today()}"></div>
+    </div>
+    <div class="fg2">
+      <div class="fg"><label>Cost</label><input type="number" id="asCost"></div>
+      <div class="fg"><label>Salvage Value</label><input type="number" id="asSalvage" value="0"></div>
+    </div>
+    <div class="fg2">
+      <div class="fg"><label>Useful Life (years)</label><input type="number" id="asLife" value="5"></div>
+      <div class="fg"><label>Method</label>
+        <select id="asMethod">
+          <option value="straight_line">Straight Line</option>
+          <option value="wdv">Written Down Value</option>
+        </select>
+      </div>
+    </div>
+    <div class="acts" style="margin-top:10px">
+      <button class="btn btn-s" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-p" id="asSave">Save</button>
+    </div>
+  `);
+  $('asSave').onclick = async () => {
+    const c = num($('asCost').value);
+    if (c <= 0) { toast('Enter cost'); return; }
+    DB.assets.push({
+      id: uid(),
+      name: $('asName').value.trim() || 'Asset',
+      category: $('asCat').value,
+      purchaseDate: $('asDate').value,
+      cost: c,
+      salvage: num($('asSalvage').value),
+      life: num($('asLife').value),
+      method: $('asMethod').value,
+      depreciated: 0
+    });
+    logAudit('Asset added', $('asName').value);
+    await saveDB();
+    closeModal();
+    toast('✅ Saved');
+    navigate('assets');
+  };
+}
+
+async function runDepreciation() {
+  DB.assets.forEach(a => {
+    if (a.method === 'straight_line') {
+      const annual = (num(a.cost) - num(a.salvage)) / num(a.life);
+      a.depreciated = Math.min(
+        num(a.cost) - num(a.salvage),
+        num(a.depreciated) + annual
+      );
+    } else {
+      const rate = 1 / num(a.life);
+      a.depreciated = Math.min(
+        num(a.cost) - num(a.salvage),
+        num(a.depreciated) + (num(a.cost) - num(a.depreciated)) * rate
+      );
+    }
+  });
+  logAudit('Depreciation run', 'All assets');
+  await saveDB();
+  toast('✅ Depreciation computed');
+  navigate('assets');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BUDGET
+   ═══════════════════════════════════════════════════════════════ */
+VIEWS.budget = function() {
+  return `
+    <div class="card">
+      <h3>🎯 Budget Management</h3>
+      <p class="sub">Set monthly budgets per category and track actual spending.</p>
+      <div class="acts">
+        <button class="btn btn-p" id="btnNewBudget">+ Budget</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Budgets (${DB.budgets.length})</h3>
+      ${DB.budgets.length ? `
+        <table class="tbl">
+          <thead><tr><th>Category</th><th class="num">Budgeted</th><th class="num">Actual</th><th class="num">Remaining</th></tr></thead>
+          <tbody>
+            ${DB.budgets.map(b => {
+              const actual = DB.expenses
+                .filter(e => e.category === b.category && e.date?.startsWith(b.month))
+                .reduce((s, e) => s + num(e.amount), 0);
+              const rem = num(b.amount) - actual;
+              return `
+                <tr>
+                  <td>${esc(b.category)}</td>
+                  <td class="num">₹${fmt(b.amount)}</td>
+                  <td class="num">₹${fmt(actual)}</td>
+                  <td class="num" style="color:${rem >= 0 ? 'var(--g)' : 'var(--r)'}">₹${fmt(rem)}</td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      ` : '<div class="empty">No budgets set</div>'}
+    </div>
+  `;
+};
+
+BINDINGS.budget = function() {
+  $('btnNewBudget').onclick = newBudget;
+};
+
+function newBudget() {
+  const cats = ['Rent', 'Utilities', 'Salaries', 'Marketing', 'Travel',
+    'Office Supplies', 'Professional Fees', 'Maintenance', 'Insurance', 'Other'];
+  openM(`
+    <h3>🎯 New Budget</h3>
+    <div class="fg2">
+      <div class="fg"><label>Category</label>
+        <select id="bgCat">${cats.map(c => `<option>${c}</option>`).join('')}</select>
+      </div>
+      <div class="fg"><label>Month</label><input type="month" id="bgMonth" value="${today().slice(0, 7)}"></div>
+    </div>
+    <div class="fg"><label>Budget Amount</label><input type="number" id="bgAmt"></div>
+    <div class="acts" style="margin-top:10px">
+      <button class="btn btn-s" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-p" id="bgSave">Save</button>
+    </div>
+  `);
+  $('bgSave').onclick = async () => {
+    DB.budgets.push({
+      id: uid(),
+      category: $('bgCat').value,
+      month: $('bgMonth').value,
+      amount: num($('bgAmt').value)
+    });
+    await saveDB();
+    closeModal();
+    toast('✅ Budget set');
+    navigate('budget');
+  };
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PROJECTS
+   ═══════════════════════════════════════════════════════════════ */
+VIEWS.projects = function() {
+  return `
+    <div class="card">
+      <h3>📁 Project Management</h3>
+      <p class="sub">Track projects, tasks, timelines, and profitability.</p>
+      <div class="acts">
+        <button class="btn btn-p" id="btnNewProj">+ Project</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Projects (${DB.projects.length})</h3>
+      ${DB.projects.length ? `
+        <div class="scroll-list">
+          <table class="tbl">
+            <thead><tr><th>Project</th><th>Client</th><th>Progress</th><th class="num">Budget</th><th></th></tr></thead>
+            <tbody>
+              ${DB.projects.map(p => {
+                const tasks = DB.projectTasks.filter(t => t.projectId === p.id);
+                const done = tasks.filter(t => t.status === 'done').length;
+                const pct = tasks.length ? (done / tasks.length * 100) : 0;
+                return `
+                  <tr>
+                    <td>${esc(p.name)}</td>
+                    <td>${esc(p.client || '-')}</td>
+                    <td>
+                      <span style="font-size:9px">${done}/${tasks.length}</span>
+                      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+                    </td>
+                    <td class="num">₹${fmt(p.budget || 0)}</td>
+                    <td><span class="btn btn-s btn-sm" onclick="viewProject('${p.id}')">📋</span></td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      ` : '<div class="empty">No projects yet</div>'}
+    </div>
+  `;
+};
+
+BINDINGS.projects = function() {
+  $('btnNewProj').onclick = newProject;
+};
+
+window.viewProject = function(id) {
+  const p = DB.projects.find(x => x.id === id);
+  if (!p) return;
+  const tasks = DB.projectTasks.filter(t => t.projectId === id);
+  openM(`
+    <h3>📁 ${esc(p.name)}</h3>
+    <div class="acts" style="margin-bottom:10px">
+      <button class="btn btn-s btn-full btn-sm" onclick="addTask('${id}')">+ Add Task</button>
+    </div>
+    ${tasks.length ? `
+      <table class="tbl">
+        <thead><tr><th>Task</th><th>Status</th><th>Due</th><th></th></tr></thead>
+        <tbody>
+          ${tasks.map(t => `
+            <tr>
+              <td>${esc(t.name)}</td>
+              <td><span class="tag ${t.status === 'done' ? 'tag-paid' : 'tag-partial'}">${t.status}</span></td>
+              <td>${t.due || '-'}</td>
+              <td>${t.status !== 'done' ? `<span class="btn btn-g btn-sm" onclick="completeTask('${t.id}')">✓</span>` : ''}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    ` : '<div class="empty">No tasks</div>'}
+  `);
+};
+
+window.addTask = function(pid) {
+  openM(`
+    <h3>📋 New Task</h3>
+    <div class="fg"><label>Task Name</label><input id="tkName"></div>
+    <div class="fg2">
+      <div class="fg"><label>Due Date</label><input type="date" id="tkDue" value="${today()}"></div>
+      <div class="fg"><label>Assigned To</label><input id="tkAss"></div>
+    </div>
+    <div class="acts" style="margin-top:10px">
+      <button class="btn btn-s" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-p" id="tkSave">Save</button>
+    </div>
+  `);
+  $('tkSave').onclick = async () => {
+    DB.projectTasks.push({
+      id: uid(), projectId: pid,
+      name: $('tkName').value.trim() || 'Task',
+      due: $('tkDue').value,
+      assignedTo: $('tkAss').value.trim(),
+      status: 'todo'
+    });
+    await saveDB();
+    closeModal();
+    toast('✅ Task added');
+    navigate('projects');
+  };
+};
+
+window.completeTask = async function(id) {
+  const t = DB.projectTasks.find(x => x.id === id);
+  if (t) t.status = 'done';
+  await saveDB();
+  toast('✅ Done');
+  navigate('projects');
+};
+
+function newProject() {
+  const custOpts = DB.customers.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('');
+  openM(`
+    <h3>📁 New Project</h3>
+    <div class="fg"><label>Project Name</label><input id="pjName"></div>
+    <div class="fg"><label>Client</label><select id="pjCust"><option value="">— Select —</option>${custOpts}</select></div>
+    <div class="fg2">
+      <div class="fg"><label>Start</label><input type="date" id="pjStart" value="${today()}"></div>
+      <div class="fg"><label>End</label><input type="date" id="pjEnd" value="${today()}"></div>
+    </div>
+    <div class="fg"><label>Budget (₹)</label><input type="number" id="pjBudget" value="0"></div>
+    <div class="acts" style="margin-top:10px">
+      <button class="btn btn-s" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-p" id="pjSave">Create</button>
+    </div>
+  `);
+  $('pjSave').onclick = async () => {
+    const cid = $('pjCust').value;
+    const c = DB.customers.find(x => x.id === cid);
+    DB.projects.push({
+      id: uid(),
+      name: $('pjName').value.trim() || 'Project',
+      clientId: cid, client: c ? c.name : '',
+      start: $('pjStart').value, end: $('pjEnd').value,
+      budget: num($('pjBudget').value),
+      status: 'active'
+    });
+    logAudit('Project created', $('pjName').value);
+    await saveDB();
+    closeModal();
+    toast('✅ Created');
+    navigate('projects');
+  };
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PAYROLL
+   ═══════════════════════════════════════════════════════════════ */
+VIEWS.staff = function() {
+  return `
+    <div class="card">
+      <h3>👷 Staff & Payroll</h3>
+      <div class="acts">
+        <button class="btn btn-p" id="btnNewStaff">+ Staff</button>
+        <button class="btn btn-s" id="btnAttend">📋 Attendance</button>
+        <button class="btn btn-s" id="btnPayslip">💰 Payslip</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Staff (${DB.staff.length})</h3>
+      ${DB.staff.length ? `
+        <div class="scroll-list">
+          <table class="tbl">
+            <thead><tr><th>Name</th><th>Role</th><th class="num">Rate</th><th class="num">Present</th><th class="num">Payable</th></tr></thead>
+            <tbody>
+              ${DB.staff.map(s => {
+                const att = DB.attendance.filter(a => a.staffId === s.id && a.status === 'present').length;
+                const pay = att * num(s.dailyRate);
+                return `
+                  <tr>
+                    <td>${esc(s.name)}</td>
+                    <td>${esc(s.role || '-')}</td>
+                    <td class="num">₹${fmt(s.dailyRate)}</td>
+                    <td class="num">${att}</td>
+                    <td class="num">₹${fmt(pay)}</td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      ` : '<div class="empty">No staff added yet</div>'}
+    </div>
+  `;
+};
+
+BINDINGS.staff = function() {
+  $('btnNewStaff').onclick = newStaff;
+  $('btnAttend').onclick = markAttend;
+  $('btnPayslip').onclick = generatePayslip;
+};
+
+function newStaff() {
+  openM(`
+    <h3>👷 Add Staff</h3>
+    <div class="fg"><label>Name *</label><input id="stName"></div>
+    <div class="fg2">
+      <div class="fg"><label>Role</label><input id="stRole"></div>
+      <div class="fg"><label>Daily Rate</label><input type="number" id="stRate" value="500"></div>
+    </div>
+    <div class="fg"><label>Phone</label><input id="stPhone"></div>
+    <div class="acts" style="margin-top:10px">
+      <button class="btn btn-s" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-p" id="stSave">Save</button>
+    </div>
+  `);
+  $('stSave').onclick = async () => {
+    const n = $('stName').value.trim();
+    if (!n) { toast('Name required'); return; }
+    DB.staff.push({
+      id: uid(), name: n,
+      role: $('stRole').value.trim(),
+      dailyRate: num($('stRate').value),
+      phone: $('stPhone').value.trim(),
+      created: nowStr()
+    });
+    await saveDB();
+    closeModal();
+    toast('✅ Saved');
+    navigate('staff');
+  };
+}
+
+function markAttend() {
+  if (!DB.staff.length) { toast('Add staff first'); return; }
+  openM(`
+    <h3>📋 Mark Attendance</h3>
+    <div class="fg"><label>Date</label><input type="date" id="attDate" value="${today()}"></div>
+    ${DB.staff.map(s => `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05)">
+        <span style="font-size:11px">${esc(s.name)}</span>
+        <select id="att_${s.id}" style="width:95px;padding:4px;border-radius:5px;background:rgba(0,0,0,.35);color:var(--txt);border:1px solid rgba(255,255,255,.1);font-size:11px">
+          <option value="present">Present</option>
+          <option value="absent">Absent</option>
+        </select>
+      </div>
+    `).join('')}
+    <div class="acts" style="margin-top:10px">
+      <button class="btn btn-s" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-p" id="attSave">Save</button>
+    </div>
+  `);
+  $('attSave').onclick = async () => {
+    const d = $('attDate').value;
+    DB.staff.forEach(s => {
+      const st = $('att_' + s.id).value;
+      DB.attendance = DB.attendance.filter(a => !(a.staffId === s.id && a.date === d));
+      DB.attendance.push({ id: uid(), staffId: s.id, date: d, status: st });
+    });
+    await saveDB();
+    closeModal();
+    toast('✅ Attendance saved');
+    navigate('staff');
+  };
+}
+
+function generatePayslip() {
+  if (!DB.staff.length) { toast('Add staff first'); return; }
+  const sOpts = DB.staff.map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join('');
+  openM(`
+    <h3>💰 Generate Payslip</h3>
+    <div class="fg"><label>Staff</label><select id="psStaff">${sOpts}</select></div>
+    <div class="fg"><label>Month</label><input type="month" id="psMonth" value="${today().slice(0, 7)}"></div>
+    <div class="acts" style="margin-top:10px">
+      <button class="btn btn-s" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-p" id="psGo">Generate</button>
+    </div>
+  `);
+  $('psGo').onclick = () => {
+    const sid = $('psStaff').value;
+    const s = DB.staff.find(x => x.id === sid);
+    const month = $('psMonth').value;
+    const att = DB.attendance
+      .filter(a => a.staffId === sid && a.date?.startsWith(month) && a.status === 'present').length;
+    const pay = att * num(s.dailyRate);
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.setFontSize(16);
+    doc.text('PAYSLIP', 14, 20);
+    doc.setFontSize(11);
+    doc.text('Employee: ' + s.name, 14, 35);
+    doc.text('Role: ' + (s.role || '-'), 14, 42);
+    doc.text('Month: ' + month, 14, 49);
+    doc.text('Days Present: ' + att, 14, 56);
+    doc.text('Daily Rate: ₹' + fmt(s.dailyRate), 14, 63);
+    doc.setFontSize(14);
+    doc.text('Net Pay: ₹' + fmt(pay), 14, 78);
+    doc.save('payslip_' + s.name + '_' + month + '.pdf');
+    toast('✅ Payslip downloaded');
+    closeModal();
+  };
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SCAN
+   ═══════════════════════════════════════════════════════════════ */
+VIEWS.scan = function() {
+  return `
+    <div class="card">
+      <h3>📷 Scan Barcode / QR</h3>
+      <p class="sub">Camera-based scanning using jsQR.</p>
+      <div class="acts">
+        <button class="btn btn-p" id="btnScanQR">📱 Scan QR</button>
+        <button class="btn btn-s" id="btnGenLabel">🏷️ Barcode Label</button>
+      </div>
+    </div>
+  `;
+};
+
+BINDINGS.scan = function() {
+  $('btnScanQR').onclick = () => startScan();
+  $('btnGenLabel').onclick = genLabel;
+};
+
+function genLabel() {
+  const prodOpts = DB.products.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
+  openM(`
+    <h3>🏷️ Barcode Label</h3>
+    <div class="fg"><label>Product</label><select id="bcProd">${prodOpts}</select></div>
+    <div class="acts">
+      <button class="btn btn-p btn-full" id="bcGen">Generate</button>
+    </div>
+  `);
+  $('bcGen').onclick = () => {
+    const pid = $('bcProd').value;
+    const p = DB.products.find(x => x.id === pid);
+    if (!p) return;
+    const barcode = p.barcode || p.sku || p.id.slice(-8);
+    openM(`
+      <h3>🏷️ Barcode Label</h3>
+      <div style="background:#fff;color:#000;padding:14px;border-radius:7px;text-align:center;font-family:var(--m)">
+        <div style="font-size:10px;font-weight:700">${esc(p.name)}</div>
+        <div style="font-size:8.5px;margin:3px 0">₹${fmt(p.rate)}</div>
+        <div style="font-size:26px;letter-spacing:3px;font-family:monospace">|||||||||||||||</div>
+        <div style="font-size:9px">${esc(barcode)}</div>
+      </div>
+      <div class="acts" style="margin-top:10px">
+        <button class="btn btn-p btn-full" onclick="window.print()">🖨️ Print</button>
+      </div>
+    `);
+  };
+}
+
+async function startScan() {
+  openM(`
+    <h3>📷 Scanning QR Code...</h3>
+    <div class="scan-area">
+      <video id="scanVid" autoplay playsinline muted></video>
+      <canvas id="scanCnv" style="display:none"></canvas>
+    </div>
+    <div id="scanResult" style="text-align:center;margin-top:10px;font-size:12px;color:var(--g);min-height:20px"></div>
+    <div class="acts" style="margin-top:10px">
+      <button class="btn btn-s btn-full" id="scanStop">Stop</button>
+    </div>
+  `);
+  const vid = $('scanVid'), cnv = $('scanCnv');
+  let stream;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+  } catch (e) {
+    toast('Camera denied');
+    closeModal();
+    return;
+  }
+  vid.srcObject = stream;
+  await vid.play();
+  const ctx = cnv.getContext('2d', { willReadFrequently: true });
+  let found = false;
+  (function loop() {
+    if (!stream || !stream.active || found) return;
+    if (vid.readyState === vid.HAVE_ENOUGH_DATA) {
+      cnv.width = vid.videoWidth;
+      cnv.height = vid.videoHeight;
+      ctx.drawImage(vid, 0, 0);
+      const id = ctx.getImageData(0, 0, cnv.width, cnv.height);
+      const code = jsQR(id.data, id.width, id.height, { inversionAttempts: 'dontInvert' });
+      if (code) {
+        found = true;
+        $('scanResult').textContent = '✅ ' + code.data;
+        toast('✅ Scanned: ' + code.data);
+        try { navigator.clipboard.writeText(code.data); } catch (e) {}
+      }
+    }
+    requestAnimationFrame(loop);
   })();
-  $('sCancel').onclick=closeM;
-  if(isBatch)$('batchDone').onclick=async()=>{if(!batch.length){setSt('❌ No pages captured yet','err');return;}killScan();await pdfFromCanvases(batch,'batch');closeM();};
-  $('sCap').onclick=()=>doCapture(vid,mode,batch,isBatch);
+  $('scanStop').onclick = () => {
+    stream.getTracks().forEach(t => t.stop());
+    closeModal();
+  };
 }
-async function doCapture(vid,mode,batch,isBatch){
-  if(!scanner)return;
-  const cap=document.createElement('canvas');cap.width=vid.videoWidth;cap.height=vid.videoHeight;cap.getContext('2d').drawImage(vid,0,0);
-  try{
-    const pw=1400,ph=Math.round(1400*(cap.height/cap.width));
-    let res=scanner.extractPaper(cap,pw,ph);applyFilter(res,activeFilter);
-    if(mode==='book'){
-      const hw=Math.floor(res.width/2);
-      const L=document.createElement('canvas');L.width=hw;L.height=res.height;L.getContext('2d').drawImage(res,0,0,hw,res.height,0,0,hw,res.height);
-      const R=document.createElement('canvas');R.width=hw;R.height=res.height;R.getContext('2d').drawImage(res,hw,0,hw,res.height,0,0,hw,res.height);
-      if(isBatch){batch.push(L,R);setSt(`📖 ${batch.length} pages captured — continue or tap Done`,'load');return;}
-      const lb=await toBlob(L),rb=await toBlob(R);killScan();showBook(lb,rb);return;
+
+/* ═══════════════════════════════════════════════════════════════
+   REPORTS
+   ═══════════════════════════════════════════════════════════════ */
+VIEWS.reports = function() {
+  const sales = DB.invoices.reduce((s, i) => s + (i.total || 0), 0);
+  const purchases = DB.purchases.reduce((s, p) => s + (p.total || 0), 0);
+  const exp = DB.expenses.reduce((s, e) => s + num(e.amount), 0);
+  const gc = DB.invoices.reduce((s, i) => s + (i.totalTax || 0), 0);
+  const gp = DB.expenses.filter(e => e.itc).reduce((s, e) => s + num(e.gst), 0);
+  const hsn = {};
+  DB.invoices.forEach(i => i.items.forEach(it => {
+    const h = it.hsn || 'N/A';
+    if (!hsn[h]) hsn[h] = { taxable: 0, tax: 0 };
+    hsn[h].taxable += it.qty * it.rate;
+    hsn[h].tax += it.qty * it.rate * (it.gstRate || 0) / 100;
+  }));
+  return `
+    <div class="kpis">
+      <div class="kpi g"><div class="kl">Revenue</div><div class="kv">₹${fmt(sales)}</div></div>
+      <div class="kpi r"><div class="kl">Expenses</div><div class="kv">₹${fmt(exp)}</div></div>
+      <div class="kpi c"><div class="kl">Purchases</div><div class="kv">₹${fmt(purchases)}</div></div>
+      <div class="kpi p"><div class="kl">Net Profit</div><div class="kv" style="color:${sales - purchases - exp >= 0 ? 'var(--g)' : 'var(--r)'}">₹${fmt(sales - purchases - exp)}</div></div>
+    </div>
+    <div class="card">
+      <h3>📊 GST Summary</h3>
+      <table class="tbl">
+        <tbody>
+          <tr><td>GST Collected</td><td class="num">₹${fmt(gc)}</td></tr>
+          <tr><td>GST ITC</td><td class="num">₹${fmt(gp)}</td></tr>
+          <tr style="font-weight:800">
+            <td>Net GST Payable</td>
+            <td class="num" style="color:${gc - gp >= 0 ? 'var(--am)' : 'var(--g)'}">₹${fmt(gc - gp)}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <h3>📈 Monthly P&L</h3>
+      <div class="chart-wrap"><canvas id="chRep"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>📦 HSN Summary</h3>
+      ${Object.keys(hsn).length ? `
+        <table class="tbl">
+          <thead><tr><th>HSN</th><th class="num">Taxable</th><th class="num">Tax</th></tr></thead>
+          <tbody>
+            ${Object.entries(hsn).map(([h, v]) => `
+              <tr><td>${esc(h)}</td><td class="num">₹${fmt(v.taxable)}</td><td class="num">₹${fmt(v.tax)}</td></tr>
+            `).join('')}
+          </tbody>
+        </table>
+      ` : '<div class="empty">No data</div>'}
+    </div>
+    <div class="card">
+      <h3>📤 Export</h3>
+      <div class="acts">
+        <button class="btn btn-p" id="expCSV">📊 Sales CSV</button>
+        <button class="btn btn-s" id="expGSTR3B">📤 GSTR-3B</button>
+      </div>
+      <div class="acts" style="margin-top:5px">
+        <button class="btn btn-s" id="expEway">🚚 E-Way JSON</button>
+        <button class="btn btn-s" id="expGSTR9">📋 GSTR-9</button>
+      </div>
+    </div>
+  `;
+};
+
+BINDINGS.reports = function() {
+  $('expCSV').onclick = () => {
+    let csv = 'Date,Invoice,Customer,Taxable,CGST,SGST,IGST,Total\n';
+    DB.invoices.forEach(i => {
+      csv += `${i.date},${i.number},"${i.customerName}",${i.taxable},${i.cgst},${i.sgst},${i.igst},${i.total}\n`;
+    });
+    downloadBlob(new Blob([csv], { type: 'text/csv' }), 'sales_' + today() + '.csv');
+    toast('✅ CSV exported');
+  };
+  $('expGSTR3B').onclick = () => {
+    const gc = DB.invoices.reduce((s, i) => s + (i.totalTax || 0), 0);
+    const gp = DB.expenses.filter(e => e.itc).reduce((s, e) => s + num(e.gst), 0);
+    let csv = 'GSTR-3B Summary\nTaxable,GST Collected,GST ITC,Net Payable\n';
+    csv += `${DB.invoices.reduce((s, i) => s + (i.taxable || 0), 0).toFixed(2)},${gc.toFixed(2)},${gp.toFixed(2)},${(gc - gp).toFixed(2)}\n`;
+    downloadBlob(new Blob([csv], { type: 'text/csv' }), 'GSTR3B_' + today() + '.csv');
+    toast('✅ GSTR-3B exported');
+  };
+  $('expEway').onclick = () => {
+    const invs = DB.invoices.filter(i => i.total >= 50000);
+    const data = {
+      version: '1.0',
+      generated: new Date().toISOString(),
+      invoices: invs.map(i => ({
+        docNo: i.number, docDate: i.date,
+        customer: i.customerName, gstin: i.customerGSTIN || '',
+        total: i.total,
+        items: i.items.map(it => ({
+          name: it.name, hsn: it.hsn || '',
+          qty: it.qty, rate: it.rate, gst: it.gstRate
+        }))
+      }))
+    };
+    downloadBlob(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }), 'eway_' + today() + '.json');
+    toast('✅ E-Way JSON exported');
+  };
+  $('expGSTR9').onclick = () => {
+    let csv = 'GSTR-9 Annual Return\nType,Amount\n';
+    csv += `Total Sales,${DB.invoices.reduce((s, i) => s + i.total, 0).toFixed(2)}\n`;
+    csv += `Total Tax,${DB.invoices.reduce((s, i) => s + i.totalTax, 0).toFixed(2)}\n`;
+    csv += `Total Purchases,${DB.purchases.reduce((s, p) => s + p.total, 0).toFixed(2)}\n`;
+    csv += `Total Expenses,${DB.expenses.reduce((s, e) => s + e.amount, 0).toFixed(2)}\n`;
+    downloadBlob(new Blob([csv], { type: 'text/csv' }), 'GSTR9_' + today() + '.csv');
+    toast('✅ GSTR-9 exported');
+  };
+  setTimeout(drawRepChart, 50);
+};
+
+let repChart = null;
+function drawRepChart() {
+  const ctx = $('chRep');
+  if (!ctx) return;
+  if (repChart) repChart.destroy();
+  const labels = [], rev = [], exp = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date();
+    d.setMonth(d.getMonth() - i);
+    const m = d.toISOString().slice(0, 7);
+    labels.push(d.toLocaleString('en', { month: 'short' }));
+    rev.push(DB.invoices.filter(inv => inv.date?.startsWith(m)).reduce((s, inv) => s + (inv.total || 0), 0));
+    exp.push(DB.expenses.filter(e => e.date?.startsWith(m)).reduce((s, e) => s + num(e.amount), 0));
+  }
+  repChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Revenue', data: rev, borderColor: '#22c55e', backgroundColor: 'rgba(34,197,94,.1)', tension: .3, fill: true },
+        { label: 'Expenses', data: exp, borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,.1)', tension: .3, fill: true }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: '#85859a', font: { size: 9 } } } },
+      scales: {
+        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,.05)' }, ticks: { color: '#85859a', font: { size: 9 } } },
+        x: { grid: { display: false }, ticks: { color: '#85859a', font: { size: 9 } } }
+      }
     }
-    const blob=await toBlob(res);
-    if(isBatch){batch.push(res);setSt(`📚 ${batch.length} pages captured — continue or tap Done`,'load');return;}
-    killScan();showScan(blob,mode);
-  }catch(e){setSt('❌ Capture failed: '+e.message,'err');}
+  });
 }
-function toBlob(c){return new Promise(r=>c.toBlob(r,'image/jpeg',.92));}
-function showScan(blob){
-  const url=URL.createObjectURL(blob);
-  openM(
-    `<h3>✅ Scan Complete</h3>`+
-    `<div class="preview-wrap"><img src="${url}"></div>`+
-    `<div class="acts"><button class="btn-s" id="rTry">Retake</button><button class="btn-p" id="sJpg">Save JPG</button></div>`+
-    `<div class="acts" style="margin-top:6px"><button class="btn-g btn-wide" id="sPdf">📄 Save as PDF</button></div>`
-  );
-  $('rTry').onclick=()=>{URL.revokeObjectURL(url);closeM();launchScan('document');};
-  $('sJpg').onclick=()=>{dl(blob,'scan_'+uid()+'.jpg');setSt('✅ Scan saved as JPG','ok');closeM();};
-  $('sPdf').onclick=async()=>{const d=await PDFDocument.create();const b=await blob.arrayBuffer();const im=await d.embedJpg(b);const p=d.addPage([im.width,im.height]);p.drawImage(im,{x:0,y:0,width:im.width,height:im.height});const by=await d.save();dl(new Blob([by],{type:'application/pdf'}),'scan_'+uid()+'.pdf');setSt('✅ Scan saved as PDF','ok');closeM();};
-}
-function showBook(lb,rb){
-  const lu=URL.createObjectURL(lb),ru=URL.createObjectURL(rb);
-  openM(
-    `<h3>📖 Book Pages Extracted</h3>`+
-    `<div style="display:flex;gap:8px;margin-bottom:14px"><img src="${lu}" style="width:50%;border-radius:8px"><img src="${ru}" style="width:50%;border-radius:8px"></div>`+
-    `<div class="acts"><button class="btn-s" id="bTry">Retake</button><button class="btn-g btn-wide" id="bSave">📄 Save Both as PDF</button></div>`
-  );
-  $('bTry').onclick=()=>{URL.revokeObjectURL(lu);URL.revokeObjectURL(ru);closeM();launchScan('book');};
-  $('bSave').onclick=async()=>{
-    const d=await PDFDocument.create();
-    for(const b of[lb,rb]){const bf=await b.arrayBuffer();const im=await d.embedJpg(bf);const p=d.addPage([im.width,im.height]);p.drawImage(im,{x:0,y:0,width:im.width,height:im.height});}
-    const by=await d.save();dl(new Blob([by],{type:'application/pdf'}),'book_'+uid()+'.pdf');setSt('✅ Book pages saved as PDF','ok');
-    URL.revokeObjectURL(lu);URL.revokeObjectURL(ru);closeM();
+
+/* ═══════════════════════════════════════════════════════════════
+   AUDIT
+   ═══════════════════════════════════════════════════════════════ */
+VIEWS.audit = function() {
+  const a = [...DB.audit].reverse();
+  return `
+    <div class="card">
+      <h3>📜 Audit Trail (${a.length})</h3>
+      <p class="sub">Every action logged with timestamp and user</p>
+      <div class="acts" style="margin-bottom:8px">
+        <button class="btn btn-s btn-sm" id="expAuditCSV">📤 Export CSV</button>
+      </div>
+      ${a.length ? `
+        <div class="scroll-list">
+          <table class="tbl">
+            <thead><tr><th>Time</th><th>User</th><th>Action</th><th>Detail</th></tr></thead>
+            <tbody>
+              ${a.slice(0, 100).map(e => `
+                <tr>
+                  <td style="font-size:8px">${esc(e.ts)}</td>
+                  <td>${esc(e.user)}</td>
+                  <td>${esc(e.action)}</td>
+                  <td style="font-size:8px;color:var(--txt2)">${esc(e.detail)}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      ` : '<div class="empty">No activity yet</div>'}
+    </div>
+  `;
+};
+
+BINDINGS.audit = function() {
+  $('expAuditCSV').onclick = () => {
+    let csv = 'Time,User,Action,Detail\n';
+    DB.audit.forEach(e => {
+      csv += `"${e.ts}","${e.user}","${e.action}","${e.detail}"\n`;
+    });
+    downloadBlob(new Blob([csv], { type: 'text/csv' }), 'audit_' + today() + '.csv');
+    toast('✅ Audit exported');
   };
-}
-async function pdfFromCanvases(canvases,prefix){
-  loadSt('Creating PDF…');
-  try{
-    const d=await PDFDocument.create();
-    for(const c of canvases){const b=await toBlob(c);const bf=await b.arrayBuffer();const im=await d.embedJpg(bf);const p=d.addPage([im.width,im.height]);p.drawImage(im,{x:0,y:0,width:im.width,height:im.height});}
-    const by=await d.save();dl(new Blob([by],{type:'application/pdf'}),prefix+'_'+uid()+'.pdf');
-    setSt('✅ PDF created with '+canvases.length+' pages','ok');
-  }catch(e){setSt('❌ Error: '+e.message,'err');}
-}
+};
 
-/* ── ID Card ── */
-function launchId(){
-  openM(
-    `<h3>🪪 ID Card Scan</h3><p class="sub">Select front and back images. They will be combined onto a single A4 page.</p>`+
-    `<input type="file" id="idF" accept="image/*" style="margin-bottom:8px"><input type="file" id="idB" accept="image/*" style="margin-bottom:12px">`+
-    `<div class="acts"><button class="btn-s" id="idX">Cancel</button><button class="btn-p" id="idGo">Combine</button></div>`
-  );
-  $('idX').onclick=closeM;
-  $('idGo').onclick=async()=>{
-    const ff=$('idF').files[0],bf=$('idB').files[0];
-    if(!ff||!bf){setSt('❌ Please select both front and back','err');return;}
-    loadSt('🪪 Combining ID card…');
-    try{
-      const d=await PDFDocument.create();
-      const fi=await d.embedJpg(await ff.arrayBuffer());const bi=await d.embedJpg(await bf.arrayBuffer());
-      const pg=d.addPage([595,842]);const m=40;const aw=595-m*2;
-      const fs=Math.min(aw/fi.width,(842/2-m)/fi.height);const bs=Math.min(aw/bi.width,(842/2-m)/bi.height);
-      pg.drawImage(fi,{x:(595-fi.width*fs)/2,y:842/2+20,width:fi.width*fs,height:fi.height*fs});
-      pg.drawImage(bi,{x:(595-bi.width*bs)/2,y:842/2-bi.height*bs-20,width:bi.width*bs,height:bi.height*bs});
-      const by=await d.save();dl(new Blob([by],{type:'application/pdf'}),'id_'+uid()+'.pdf');setSt('✅ ID card combined → A4 PDF','ok');closeM();
-    }catch(e){setSt('❌ Error: '+e.message,'err');}
-  };
-}
+/* ═══════════════════════════════════════════════════════════════
+   APPROVALS
+   ═══════════════════════════════════════════════════════════════ */
+VIEWS.approvals = function() {
+  const a = [...DB.approvals].reverse();
+  return `
+    <div class="card">
+      <h3>✅ Approval Workflow</h3>
+      <p class="sub">Transactions above ₹${fmt(DB.settings.approvalThreshold)} require approval.</p>
+    </div>
+    <div class="card">
+      <h3>Pending (${a.filter(x => x.status === 'pending').length})</h3>
+      ${a.length ? `
+        <div class="scroll-list">
+          <table class="tbl">
+            <thead><tr><th>Type</th><th>Ref</th><th class="num">Amount</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+              ${a.map(x => `
+                <tr>
+                  <td>${esc(x.type)}</td>
+                  <td>${esc(x.ref)}</td>
+                  <td class="num">₹${fmt(x.amount)}</td>
+                  <td><span class="tag ${x.status === 'approved' ? 'tag-paid' : x.status === 'rejected' ? 'tag-unpaid' : 'tag-partial'}">${x.status}</span></td>
+                  <td>
+                    ${x.status === 'pending' ? `
+                      <span class="btn btn-g btn-sm" onclick="approveItem('${x.id}','approved')">✓</span>
+                      <span class="btn btn-r btn-sm" onclick="approveItem('${x.id}','rejected')">✕</span>
+                    ` : ''}
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      ` : '<div class="empty">No approval requests</div>'}
+    </div>
+  `;
+};
 
-/* ── OCR ── */
-function launchOcr(toExcel){
-  pAction=toExcel?'ocrExcel':'ocr';
-  openM(
-    `<h3>🔍 OCR — Select Language</h3>`+
-    `<select id="lg">`+
-    `<option value="eng">English</option><option value="chi_sim">Chinese (Simplified)</option><option value="chi_tra">Chinese (Traditional)</option>`+
-    `<option value="jpn">Japanese</option><option value="kor">Korean</option><option value="fra">French</option><option value="deu">German</option>`+
-    `<option value="spa">Spanish</option><option value="por">Portuguese</option><option value="rus">Russian</option><option value="ara">Arabic</option>`+
-    `<option value="hin">Hindi</option><option value="ita">Italian</option><option value="nld">Dutch</option><option value="tur">Turkish</option></select>`+
-    `<div class="acts"><button class="btn-s" id="oX">Cancel</button><button class="btn-p" id="oGo">Select Image</button></div>`
-  );
-  $('oX').onclick=closeM;
-  $('oGo').onclick=()=>{ocrLang=$('lg').value;closeM();fImg.accept='image/*';fImg.click();};
-}
-async function runOcr(file,toExcel){
-  loadSt('🔍 Recognizing text ('+ocrLang+')…');
-  try{
-    const w=await Tesseract.createWorker(ocrLang,1,{logger:m=>{if(m.status==='recognizing text')setSt('🔍 OCR: '+Math.round(m.progress*100)+'%','load');}});
-    const{data:{text}}=await w.recognize(file);await w.terminate();
-    const clean=text.trim()||'(No text detected)';
-    if(toExcel){
-      const lines=clean.split('\n').filter(l=>l.trim());
-      const csv=lines.map(l=>l.split(/\s{2,}|\t/).map(c=>'"'+c.replace(/"/g,'""')+'"').join(',')).join('\n');
-      dl(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}),'table_'+uid()+'.csv');
-      setSt('✅ Table exported as CSV — opens in Excel','ok');closeM();return;
-    }
-    openM(
-      `<h3>🔍 OCR Result</h3><div class="ocr-box">${esc(clean)}</div>`+
-      `<div class="acts" style="margin-top:10px"><button class="btn-s" id="oCl">Close</button><button class="btn-p" id="oCp">Copy</button></div>`+
-      `<div class="acts" style="margin-top:6px"><button class="btn-g btn-wide" id="oTx">💾 Save as .txt</button></div>`
-    );
-    $('oCl').onclick=closeM;
-    $('oCp').onclick=()=>{navigator.clipboard.writeText(clean).then(()=>setSt('✅ Text copied','ok'));};
-    $('oTx').onclick=()=>{dl(new Blob([clean],{type:'text/plain'}),'ocr_'+uid()+'.txt');setSt('✅ Saved as .txt','ok');closeM();};
-    setSt('✅ OCR complete','ok');
-  }catch(e){setSt('❌ OCR failed: '+e.message,'err');}
-}
+BINDINGS.approvals = function() {};
 
-/* ── PDF ops ── */
-async function doMerge(files){
-  loadSt('Merging '+files.length+' PDFs…');
-  try{
-    const m=await PDFDocument.create();
-    for(const f of files){const b=await f.arrayBuffer();const d=await PDFDocument.load(b,{ignoreEncryption:true});const pgs=await m.copyPages(d,d.getPageIndices());pgs.forEach(p=>m.addPage(p));}
-    const by=await m.save();dl(new Blob([by],{type:'application/pdf'}),'merged.pdf');setSt('✅ Merged '+files.length+' PDFs','ok');
-  }catch(e){setSt('❌ Error: '+e.message,'err');}
-}
-async function doSplit(file,range){
-  loadSt('Splitting PDF…');
-  try{
-    const b=await file.arrayBuffer();const s=await PDFDocument.load(b,{ignoreEncryption:true});const t=s.getPageCount();let idx=[];
-    if(range&&range.trim()){const parts=range.split(',').map(x=>x.trim());for(const p of parts){if(p.includes('-')){const[a,z]=p.split('-').map(Number);for(let i=Math.max(1,a);i<=Math.min(t,z);i++)idx.push(i-1);}else{const n=Number(p);if(n>=1&&n<=t)idx.push(n-1);}}}
-    else idx=Array.from({length:t},(_,i)=>i);
-    if(!idx.length){setSt('❌ No valid pages','err');return;}
-    const o=await PDFDocument.create();const pgs=await o.copyPages(s,idx);pgs.forEach(p=>o.addPage(p));const by=await o.save();
-    dl(new Blob([by],{type:'application/pdf'}),'split_'+idx.length+'p.pdf');setSt('✅ '+idx.length+' pages extracted','ok');
-  }catch(e){setSt('❌ Error: '+e.message,'err');}
-}
-async function doRotate(file,deg){
-  loadSt('Rotating…');
-  try{const b=await file.arrayBuffer();const d=await PDFDocument.load(b,{ignoreEncryption:true});d.getPages().forEach(p=>p.setRotation(degrees(deg)));const by=await d.save();dl(new Blob([by],{type:'application/pdf'}),'rotated_'+deg+'.pdf');setSt('✅ Rotated '+deg+'°','ok');}
-  catch(e){setSt('❌ Error: '+e.message,'err');}
-}
-async function doCompress(file){
-  loadSt('Compressing…');
-  try{const b=await file.arrayBuffer();const d=await PDFDocument.load(b,{ignoreEncryption:true});const by=await d.save({useObjectStreams:true});const o=(file.size/1024).toFixed(0);const n=(by.length/1024).toFixed(0);dl(new Blob([by],{type:'application/pdf'}),'compressed.pdf');setSt('✅ '+o+' KB → '+n+' KB','ok');}
-  catch(e){setSt('❌ Error: '+e.message,'err');}
-}
-async function doWatermark(file){
-  loadSt('💧 Adding watermark…');
-  try{const b=await file.arrayBuffer();const d=await PDFDocument.load(b,{ignoreEncryption:true});const ft=await d.embedFont(StandardFonts.HelveticaBold);
-    for(const p of d.getPages()){const{width:w,height:h}=p.getSize();const fs=Math.min(w,h)*.1;const tw=ft.widthOfTextAtSize(wmText,fs);p.drawText(wmText,{x:(w-tw)/2,y:h/2-fs/3,size:fs,font:ft,color:rgb(.5,.5,.5),opacity:wmOpacity,rotate:degrees(45)});}
-    const by=await d.save();dl(new Blob([by],{type:'application/pdf'}),'watermarked_'+uid()+'.pdf');setSt('✅ Watermark added','ok');}
-  catch(e){setSt('❌ Error: '+e.message,'err');}
-}
-async function doProtect(file){
-  loadSt('🔐 Encrypting…');
-  try{const b=await file.arrayBuffer();const d=await PDFDocument.load(b,{ignoreEncryption:true});const by=await d.save({userPassword:pdfPwd,ownerPassword:pdfPwd+'_o',permissions:{printing:'highResolution',modifying:false,copying:false}});dl(new Blob([by],{type:'application/pdf'}),'protected_'+uid()+'.pdf');setSt('✅ PDF encrypted','ok');}
-  catch(e){setSt('❌ Error: '+e.message,'err');}
-}
-async function doSign(file){
-  loadSt('✍️ Applying signature…');
-  try{const b=await file.arrayBuffer();const d=await PDFDocument.load(b,{ignoreEncryption:true});const sb=await sigBlob.arrayBuffer();const im=await d.embedPng(sb);const pgs=d.getPages();const lp=pgs[pgs.length-1];const{width:w}=lp.getSize();const sw=Math.min(200,w*.35);const sh=sw*(im.height/im.width);lp.drawImage(im,{x:w-sw-40,y:40,width:sw,height:sh});const by=await d.save();dl(new Blob([by],{type:'application/pdf'}),'signed_'+uid()+'.pdf');setSt('✅ Signature added','ok');}
-  catch(e){setSt('❌ Error: '+e.message,'err');}
-}
-async function doInfo(file){
-  loadSt('Reading…');
-  try{const b=await file.arrayBuffer();const d=await PDFDocument.load(b,{ignoreEncryption:true});setSt('📄 '+file.name+' — '+d.getPageCount()+' pages, '+fBytes(file.size),'ok');}
-  catch(e){setSt('❌ Error: '+e.message,'err');}
-}
-async function doPdfWord(file){
-  loadSt('📝 Extracting text…');
-  try{
-    const b=await file.arrayBuffer();const d=await PDFDocument.load(b,{ignoreEncryption:true});let all='';
-    for(const p of d.getPages()){try{const t=await p.getText();all+=(t||'')+'\n\n';}catch(e){}}
-    if(!all.trim()){setSt('❌ No extractable text found (PDF may be image-only)','err');return;}
-    const xml='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>'+all.split('\n').map(l=>'<w:p><w:r><w:t xml:space="preserve">'+l.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</w:t></w:r></w:p>').join('')+'</w:body></w:document>';
-    dl(new Blob([xml],{type:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'}),'extracted_'+uid()+'.docx');
-    setSt('✅ Text extracted → .docx','ok');
-  }catch(e){setSt('❌ Error: '+e.message,'err');}
-}
+window.approveItem = async function(id, status) {
+  const a = DB.approvals.find(x => x.id === id);
+  if (a) {
+    a.status = status;
+    a.approvedBy = DB.currentUser.name;
+    a.approvedAt = nowStr();
+    logAudit('Approval ' + status, a.ref);
+  }
+  await saveDB();
+  toast('✅ ' + status);
+  navigate('approvals');
+};
 
-/* ── Images → PDF ── */
-function launchImgPdf(){
-  pImgs=[];
-  openM(`<h3>🖼️ Images → PDF</h3><div class="flist" id="ifList"><p style="color:var(--text2);font-size:12px">No images selected</p></div><div class="acts"><button class="btn-s" id="iAdd">Add Image</button><button class="btn-p" id="iGo">Convert to PDF</button></div><div class="acts" style="margin-top:6px"><button class="btn-s btn-wide" id="iX">Cancel</button></div>`);
-  renderImgList();
-  $('iAdd').onclick=()=>{fImg.accept='image/*';fImg.click();};
-  $('iX').onclick=closeM;
-  $('iGo').onclick=async()=>{
-    if(!pImgs.length){setSt('❌ No images selected','err');return;}
-    loadSt('Converting '+pImgs.length+' images…');
-    try{
-      const d=await PDFDocument.create();
-      for(const f of pImgs){const b=await f.arrayBuffer();let im;if(f.type==='image/png')im=await d.embedPng(b);else im=await d.embedJpg(b);const p=d.addPage([im.width,im.height]);p.drawImage(im,{x:0,y:0,width:im.width,height:im.height});}
-      const by=await d.save();dl(new Blob([by],{type:'application/pdf'}),'images_'+uid()+'.pdf');setSt('✅ '+pImgs.length+' images → PDF','ok');closeM();
-    }catch(e){setSt('❌ Error: '+e.message,'err');}
-  };
-}
-function renderImgList(){
-  const el=$('ifList');if(!el)return;
-  if(!pImgs.length){el.innerHTML='<p style="color:var(--text2);font-size:12px">No images selected</p>';return;}
-  el.innerHTML=pImgs.map((f,i)=>`<div class="fitem"><span>${esc(f.name)}</span><span class="rm" data-i="${i}">✕</span></div>`).join('');
-  el.querySelectorAll('.rm').forEach(x=>{x.onclick=()=>{pImgs.splice(+x.dataset.i,1);renderImgList();};});
-}
+/* ═══════════════════════════════════════════════════════════════
+   CURRENCY
+   ═══════════════════════════════════════════════════════════════ */
+VIEWS.currency = function() {
+  return `
+    <div class="card">
+      <h3>💱 Multi-Currency</h3>
+      <p class="sub">Manage exchange rates for international billing.</p>
+      <div class="acts">
+        <button class="btn btn-p" id="btnNewCurr">+ Currency</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Currencies</h3>
+      <table class="tbl">
+        <thead><tr><th>Code</th><th>Name</th><th>Symbol</th><th class="num">Rate (vs INR)</th></tr></thead>
+        <tbody>
+          ${DB.currencies.map(c => `
+            <tr>
+              <td><b>${c.code}</b></td>
+              <td>${esc(c.name)}</td>
+              <td>${c.symbol}</td>
+              <td class="num">${c.rate.toFixed(2)}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <h3>💱 Currency Converter</h3>
+      <div class="fg2">
+        <div class="fg"><label>From</label>
+          <select id="cvFrom">${DB.currencies.map(c => `<option value="${c.code}">${c.code}</option>`).join('')}</select>
+        </div>
+        <div class="fg"><label>To</label>
+          <select id="cvTo">${DB.currencies.map(c => `<option value="${c.code}" ${c.code === 'INR' ? 'selected' : ''}>${c.code}</option>`).join('')}</select>
+        </div>
+      </div>
+      <div class="fg"><label>Amount</label><input type="number" id="cvAmt" value="1000"></div>
+      <button class="btn btn-p btn-full" id="cvGo">Convert</button>
+      <div id="cvResult" style="text-align:center;font-size:15px;font-weight:800;margin-top:10px;color:var(--g)"></div>
+    </div>
+  `;
+};
 
-/* ── Collage ── */
-function launchCollage(){
-  openM(`<h3>🎨 Doc Collage</h3><p class="sub">Select 2–4 images to arrange on a single A4 PDF page.</p><input type="file" id="clF" accept="image/*" multiple style="margin-bottom:12px"><div class="acts"><button class="btn-s" id="clX">Cancel</button><button class="btn-p" id="clGo">Create</button></div>`);
-  $('clX').onclick=closeM;
-  $('clGo').onclick=async()=>{
-    const files=Array.from($('clF').files).slice(0,4);
-    if(files.length<2){setSt('❌ Select at least 2 images','err');return;}
-    loadSt('🎨 Creating collage…');
-    try{
-      const d=await PDFDocument.create();const pg=d.addPage([595,842]);const m=30,gap=10,n=files.length;
-      const cols=n<=2?1:2,rows=Math.ceil(n/cols);const cw=(595-m*2-gap*(cols-1))/cols;const ch=(842-m*2-gap*(rows-1))/rows;
-      for(let i=0;i<n;i++){const b=await files[i].arrayBuffer();let im;try{im=await d.embedPng(b);}catch(e){im=await d.embedJpg(b);}
-        const c=i%cols,r=Math.floor(i/cols);const x=m+c*(cw+gap);const y=842-m-(r+1)*ch-r*gap;
-        const s=Math.min(cw/im.width,ch/im.height);pg.drawImage(im,{x:x+(cw-im.width*s)/2,y:y+(ch-im.height*s)/2,width:im.width*s,height:im.height*s});}
-      const by=await d.save();dl(new Blob([by],{type:'application/pdf'}),'collage_'+uid()+'.pdf');setSt('✅ Collage created','ok');closeM();
-    }catch(e){setSt('❌ Error: '+e.message,'err');}
-  };
-}
-
-/* ── Timestamp ── */
-async function launchTimestamp(){
-  openM(`<h3>⏰ Timestamp Camera</h3><p class="sub">Capture an image with a real-time timestamp and GPS overlay burned into the photo.</p><div class="acts"><button class="btn-s" id="tX">Cancel</button><button class="btn-p" id="tGo">Open Camera</button></div>`);
-  $('tX').onclick=closeM;
-  $('tGo').onclick=async()=>{
-    closeM();
-    openM(`<h3>⏰ Timestamp Camera</h3><div class="preview-wrap"><video id="tv" autoplay playsinline muted></video></div><div class="acts"><button class="btn-s" id="tX2">Cancel</button><button class="btn-p" id="tCap">📸 Capture</button></div>`);
-    const vid=$('tv');let s;
-    try{s=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});}catch(e){setSt('❌ Camera denied','err');closeM();return;}
-    vid.srcObject=s;await vid.play();
-    $('tX2').onclick=()=>{s.getTracks().forEach(t=>t.stop());closeM();};
-    $('tCap').onclick=async()=>{
-      const c=document.createElement('canvas');c.width=vid.videoWidth;c.height=vid.videoHeight;const ctx=c.getContext('2d');ctx.drawImage(vid,0,0);
-      let loc='Location unavailable';
-      try{const p=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,{timeout:5000}));loc=p.coords.latitude.toFixed(4)+', '+p.coords.longitude.toFixed(4);}catch(e){}
-      const now=new Date().toLocaleString();
-      ctx.fillStyle='rgba(0,0,0,.6)';ctx.fillRect(0,c.height-70,c.width,70);
-      ctx.fillStyle='#fff';ctx.font='bold 18px sans-serif';ctx.fillText('🕐 '+now,16,c.height-42);
-      ctx.font='14px sans-serif';ctx.fillText('📍 '+loc,16,c.height-18);
-      const b=await toBlob(c);s.getTracks().forEach(t=>t.stop());dl(b,'timestamp_'+uid()+'.jpg');setSt('✅ Timestamp photo saved','ok');closeM();
+BINDINGS.currency = function() {
+  $('btnNewCurr').onclick = () => {
+    openM(`
+      <h3>💱 Add Currency</h3>
+      <div class="fg2">
+        <div class="fg"><label>Code</label><input id="ncCode" placeholder="JPY"></div>
+        <div class="fg"><label>Symbol</label><input id="ncSym" placeholder="¥"></div>
+      </div>
+      <div class="fg2">
+        <div class="fg"><label>Name</label><input id="ncName" placeholder="Japanese Yen"></div>
+        <div class="fg"><label>Rate (vs INR)</label><input type="number" id="ncRate" value="1" step="0.01"></div>
+      </div>
+      <div class="acts" style="margin-top:10px">
+        <button class="btn btn-s" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-p" id="ncSave">Save</button>
+      </div>
+    `);
+    $('ncSave').onclick = async () => {
+      DB.currencies.push({
+        code: $('ncCode').value.toUpperCase(),
+        name: $('ncName').value,
+        symbol: $('ncSym').value,
+        rate: num($('ncRate').value)
+      });
+      await saveDB();
+      closeModal();
+      toast('✅ Currency added');
+      navigate('currency');
     };
   };
+  $('cvGo').onclick = () => {
+    const amt = num($('cvAmt').value);
+    const from = $('cvFrom').value;
+    const to = $('cvTo').value;
+    const result = convertCurrency(amt, from, to);
+    $('cvResult').textContent = amt + ' ' + from + ' = ' + fmt(result) + ' ' + to;
+  };
+};
+
+/* ═══════════════════════════════════════════════════════════════
+   SETTINGS
+   ═══════════════════════════════════════════════════════════════ */
+VIEWS.settings = function() {
+  const s = DB.settings;
+  return `
+    <div class="card">
+      <h3>⚙️ Business Settings</h3>
+      <div class="fg"><label>Business Name</label><input id="setName" value="${esc(s.bizName)}"></div>
+      <div class="fg2">
+        <div class="fg"><label>GSTIN</label><input id="setGstin" value="${esc(s.gstin)}"></div>
+        <div class="fg"><label>State Code</label><input id="setState" value="${esc(s.stateCode)}"></div>
+      </div>
+      <div class="fg"><label>Address</label><textarea id="setAddr">${esc(s.address)}</textarea></div>
+      <div class="fg2">
+        <div class="fg"><label>Phone</label><input id="setPhone" value="${esc(s.phone)}"></div>
+        <div class="fg"><label>Email</label><input id="setEmail" value="${esc(s.email)}"></div>
+      </div>
+      <div class="fg3">
+        <div class="fg"><label>Prefix</label><input id="setPrefix" value="${esc(s.invPrefix)}"></div>
+        <div class="fg"><label>Next #</label><input type="number" id="setNext" value="${s.invNext}"></div>
+        <div class="fg"><label>Thermal</label>
+          <select id="setThermal">
+            <option value="58mm" ${s.thermalWidth === '58mm' ? 'selected' : ''}>58mm</option>
+            <option value="80mm" ${s.thermalWidth === '80mm' ? 'selected' : ''}>80mm</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg2">
+        <div class="fg"><label><input type="checkbox" id="setTds" ${s.tdsEnabled ? 'checked' : ''}> Enable TDS</label></div>
+        <div class="fg"><label><input type="checkbox" id="setTcs" ${s.tcsEnabled ? 'checked' : ''}> Enable TCS</label></div>
+      </div>
+      <div class="fg2">
+        <div class="fg"><label><input type="checkbox" id="setCreditLimit" ${s.creditLimitEnabled ? 'checked' : ''}> Credit Limit Check</label></div>
+        <div class="fg"><label>Approval Threshold (₹)</label><input type="number" id="setThreshold" value="${s.approvalThreshold}"></div>
+      </div>
+      <button class="btn btn-p btn-full" id="setSave">💾 Save Settings</button>
+    </div>
+    <div class="card">
+      <h3>👤 User Role</h3>
+      <div class="fg"><label>Current User</label>
+        <select id="setUser">
+          ${DB.roles.map(r => `<option value="${r.id}" ${DB.currentUser.role === r.id ? 'selected' : ''}>${esc(r.name)}</option>`).join('')}
+        </select>
+      </div>
+      <button class="btn btn-s btn-full" id="setUserSave">Switch Role</button>
+    </div>
+    <div class="card">
+      <h3>💾 Data Management</h3>
+      <p class="sub">All data stored locally in IndexedDB. Export regularly for backup.</p>
+      <div class="acts">
+        <button class="btn btn-p" id="setExport">📤 Export All</button>
+        <button class="btn btn-s" id="setImport">📥 Import</button>
+      </div>
+      <div class="acts" style="margin-top:5px">
+        <button class="btn btn-r btn-full" id="setReset">🗑 Reset All Data</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>ℹ️ About BizSuite Max</h3>
+      <p class="sub">Complete offline business OS — 24 modules, 100+ features. Built on standards from ERPNext, Odoo, Zoho Books, Tally, QuickBooks, and Katana. Everything runs in your browser. No server, no login, no ads, no watermarks, free forever.</p>
+    </div>
+  `;
+};
+
+BINDINGS.settings = function() {
+  $('setSave').onclick = async () => {
+    Object.assign(DB.settings, {
+      bizName: $('setName').value.trim() || 'My Business',
+      gstin: $('setGstin').value.trim(),
+      stateCode: $('setState').value.trim(),
+      address: $('setAddr').value.trim(),
+      phone: $('setPhone').value.trim(),
+      email: $('setEmail').value.trim(),
+      invPrefix: $('setPrefix').value.trim() || 'INV-',
+      invNext: num($('setNext').value) || 1,
+      thermalWidth: $('setThermal').value,
+      tdsEnabled: $('setTds').checked,
+      tcsEnabled: $('setTcs').checked,
+      creditLimitEnabled: $('setCreditLimit').checked,
+      approvalThreshold: num($('setThreshold').value)
+    });
+    await saveDB();
+    toast('✅ Settings saved');
+  };
+  $('setUserSave').onclick = async () => {
+    const rid = $('setUser').value;
+    const r = DB.roles.find(x => x.id === rid);
+    DB.currentUser = { name: r.name, role: rid };
+    await saveDB();
+    toast('✅ Switched to ' + r.name);
+    navigate('dash');
+  };
+  $('setExport').onclick = exportAll;
+  $('setImport').onclick = importAll;
+  $('setReset').onclick = async () => {
+    if (confirm('Delete ALL data? This cannot be undone.')) {
+      DB = defaultDB();
+      await saveDB();
+      toast('Reset done');
+      navigate('dash');
+    }
+  };
+};
+
+/* ═══════════════════════════════════════════════════════════════
+   EXPORT / IMPORT
+   ═══════════════════════════════════════════════════════════════ */
+function exportAll() {
+  downloadBlob(
+    new Blob([JSON.stringify(DB, null, 2)], { type: 'application/json' }),
+    'bizsuite_backup_' + today() + '.json'
+  );
+  toast('✅ Backup exported');
 }
 
-/* ── QR ── */
-async function launchQr(){
-  openM(`<h3>📱 QR Scanner</h3><p class="sub">Point your camera at a QR code. Detection is powered by jsQR — runs fully offline.</p><div class="preview-wrap"><video id="qv" autoplay playsinline muted></video><canvas id="qc" class="hidden"></canvas></div><div id="qrBox"></div><div class="acts"><button class="btn-s btn-wide" id="qX">Close</button></div>`);
-  const vid=$('qv'),cnv=$('qc');let s;
-  try{s=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});}catch(e){setSt('❌ Camera denied','err');closeM();return;}
-  vid.srcObject=s;await vid.play();
-  const ctx=cnv.getContext('2d',{willReadFrequently:true});
-  let found=false;
-  (function scan(){
-    if(!s||!s.active||found)return;
-    if(vid.readyState===vid.HAVE_ENOUGH_DATA){
-      cnv.width=vid.videoWidth;cnv.height=vid.videoHeight;
-      ctx.drawImage(vid,0,0,cnv.width,cnv.height);
-      const id=ctx.getImageData(0,0,cnv.width,cnv.height);
-      const code=jsQR(id.data,id.width,id.height,{inversionAttempts:'dontInvert'});
-      if(code){
-        found=true;
-        $('qrBox').textContent='✅ '+code.data;
-        setSt('✅ QR detected','ok');
-        try{navigator.clipboard.writeText(code.data);}catch(e){}
-        return;
+function importAll() {
+  const inp = document.createElement('input');
+  inp.type = 'file';
+  inp.accept = '.json';
+  inp.onchange = e => {
+    const f = e.target.files[0];
+    if (!f) return;
+    const r = new FileReader();
+    r.onload = async () => {
+      try {
+        const d = JSON.parse(r.result);
+        DB = healDB(d);
+        await saveDB();
+        toast('✅ Data imported');
+        navigate('dash');
+      } catch (err) {
+        toast('❌ Invalid file');
       }
-    }
-    requestAnimationFrame(scan);
-  })();
-  $('qX').onclick=()=>{found=true;s.getTracks().forEach(t=>t.stop());closeM();};
-}
-
-/* ── Share ── */
-function launchShare(){
-  openM(`<h3>📤 Share Files</h3><p class="sub">Select files to share via your device's native share sheet.</p><input type="file" id="shF" multiple style="margin-bottom:12px"><div class="acts"><button class="btn-s" id="shX">Cancel</button><button class="btn-p" id="shGo">Share</button></div>`);
-  $('shX').onclick=closeM;
-  $('shGo').onclick=async()=>{
-    const files=$('shF').files;
-    if(!files.length){setSt('❌ No files selected','err');return;}
-    if(navigator.share&&navigator.canShare){try{await navigator.share({files:Array.from(files)});setSt('✅ Shared','ok');}catch(e){if(e.name!=='AbortError')setSt('❌ '+e.message,'err');}}
-    else setSt('⚠️ Native share not supported — use download instead','warn');
-    closeM();
+    };
+    r.readAsText(f);
   };
+  inp.click();
 }
 
-/* ── Signature pad ── */
-function launchSig(){
-  openM(`<h3>✍️ Draw Your Signature</h3><p class="sub">Sign below with your finger or mouse. Then place it on a PDF.</p><canvas id="sigPad"></canvas><div class="acts"><button class="btn-s" id="sgC">Clear</button><button class="btn-p" id="sgS">Use Signature</button></div>`);
-  const cnv=$('sigPad');const ctx=cnv.getContext('2d');
-  cnv.width=cnv.offsetWidth*2;cnv.height=cnv.offsetHeight*2;ctx.scale(2,2);
-  ctx.strokeStyle='#000';ctx.lineWidth=2.5;ctx.lineCap='round';ctx.lineJoin='round';
-  let drawing=false;
-  function pos(e){const r=cnv.getBoundingClientRect();const t=e.touches?e.touches[0]:e;return{x:(t.clientX-r.left),y:(t.clientY-r.top)};}
-  cnv.addEventListener('pointerdown',e=>{drawing=true;const p=pos(e);ctx.beginPath();ctx.moveTo(p.x,p.y);});
-  cnv.addEventListener('pointermove',e=>{if(!drawing)return;const p=pos(e);ctx.lineTo(p.x,p.y);ctx.stroke();});
-  cnv.addEventListener('pointerup',()=>drawing=false);
-  cnv.addEventListener('pointerleave',()=>drawing=false);
-  $('sgC').onclick=()=>ctx.clearRect(0,0,cnv.width,cnv.height);
-  $('sgS').onclick=async()=>{
-    sigBlob=await new Promise(r=>cnv.toBlob(r,'image/png'));
-    closeM();pAction='signApply';fPdf.accept='.pdf';fPdf.click();
-  };
-}
-
-/* ── Hidden input handlers ── */
-fPdf.addEventListener('change',e=>{
-  const files=Array.from(e.target.files);
-  if(pAction==='merge'){pFiles=pFiles.concat(files);renderMerge();}
-  else if(pAction==='watermarkApply'){const f=files[0];if(f)doWatermark(f);}
-  else if(pAction==='protectApply'){const f=files[0];if(f)doProtect(f);}
-  else if(pAction==='signApply'){const f=files[0];if(f&&sigBlob)doSign(f);}
-  else if(pAction==='pdfWord'){const f=files[0];if(f)doPdfWord(f);}
-  else if(['split','rotate','compress','pinfo'].includes(pAction)){
-    pFiles=files.slice(0,1);
-    if(pAction==='split')renderSplit();
-    else if(pAction==='rotate')renderRotate();
-    else if(pAction==='compress'){const f=pFiles[0];closeM();doCompress(f);}
-    else if(pAction==='pinfo'){const f=pFiles[0];closeM();doInfo(f);}
+$('hbExport').onclick = exportAll;
+$('hbImport').onclick = importAll;
+$('hbReset').onclick = async () => {
+  if (confirm('Reset all data?')) {
+    DB = defaultDB();
+    await saveDB();
+    toast('Reset done');
+    navigate('dash');
   }
-  fPdf.value='';
-});
-fImg.addEventListener('change',e=>{
-  const files=Array.from(e.target.files);
-  if(pAction==='ocr'){const f=files[0];if(f){closeM();runOcr(f,false);}}
-  else if(pAction==='ocrExcel'){const f=files[0];if(f){closeM();runOcr(f,true);}}
-  else{pImgs=pImgs.concat(files);renderImgList();}
-  fImg.value='';
-});
+};
 
-/* ── Modals ── */
-function renderMerge(){
-  let h=pFiles.map((f,i)=>`<div class="fitem"><span>${esc(f.name)}</span><span class="rm" data-i="${i}">✕</span></div>`).join('')||'<p style="color:var(--text2);font-size:12px">No files selected</p>';
-  openM(`<h3>🔗 Merge PDFs</h3><div class="flist">${h}</div><div class="acts"><button class="btn-s" id="mAdd">Add File</button><button class="btn-p" id="mGo">Merge Now</button></div><div class="acts" style="margin-top:6px"><button class="btn-s btn-wide" id="mX">Cancel</button></div>`);
-  $('mAdd').onclick=()=>{fPdf.click();};$('mX').onclick=closeM;
-  $('mGo').onclick=()=>{if(pFiles.length<2){setSt('❌ Need at least 2 PDFs','err');return;}const f=pFiles.slice();closeM();doMerge(f);};
-  mc.querySelectorAll('.rm').forEach(x=>{x.onclick=()=>{pFiles.splice(+x.dataset.i,1);renderMerge();};});
-}
-function renderSplit(){
-  openM(`<h3>✂️ Split PDF</h3><p class="sub">Enter page ranges — e.g. <b>1-3</b>, <b>1,3,5</b> — or leave blank to extract all pages.</p><input type="text" id="spR" placeholder="e.g. 1-3, 5, 7-9" autofocus><div class="acts"><button class="btn-s" id="spX">Cancel</button><button class="btn-p" id="spGo">Split</button></div>`);
-  $('spX').onclick=closeM;
-  $('spGo').onclick=()=>{const r=$('spR').value;const f=pFiles[0];closeM();doSplit(f,r);};
-}
-function renderRotate(){
-  openM(`<h3>🔄 Rotate PDF</h3><select id="rtD"><option value="90">90° Clockwise</option><option value="180">180° Upside-down</option><option value="270">90° Counter-clockwise</option></select><div class="acts"><button class="btn-s" id="rtX">Cancel</button><button class="btn-p" id="rtGo">Rotate</button></div>`);
-  $('rtX').onclick=closeM;
-  $('rtGo').onclick=()=>{const d=parseInt($('rtD').value);const f=pFiles[0];closeM();doRotate(f,d);};
-}
+/* ═══════════════════════════════════════════════════════════════
+   INIT
+   ═══════════════════════════════════════════════════════════════ */
+(async function init() {
+  try {
+    DB = await loadDB();
+  } catch (e) {
+    DB = defaultDB();
+  }
+  if (!DB.warehouses || !DB.warehouses.length) {
+    DB.warehouses = [{ id: 'default', name: 'Main Store', address: '' }];
+  }
+  navigate('dash');
+  setSt('✅ BizSuite Max loaded — 24 modules ready', 'ok');
+})();
 
-/* ── Tool router ── */
-document.querySelectorAll('.tool').forEach(t=>{
-  t.addEventListener('click',()=>{
-    const a=t.dataset.a;pAction=a;pFiles=[];pImgs=[];
-    switch(a){
-      case 'scan':launchScan('document');break;
-      case 'idcard':launchId();break;
-      case 'book':launchScan('book');break;
-      case 'batch':launchScan('batch');break;
-      case 'ocr':launchOcr(false);break;
-      case 'ocrExcel':launchOcr(true);break;
-      case 'imgPdf':launchImgPdf();break;
-      case 'pdfWord':
-        openM(`<h3>📝 PDF → Word</h3><p class="sub">Extracts text from a PDF and saves it as a .docx that opens in Word, Google Docs, or Pages.</p><div class="acts"><button class="btn-s" id="pwX">Cancel</button><button class="btn-p" id="pwGo">Select PDF</button></div>`);
-        $('pwX').onclick=closeM;$('pwGo').onclick=()=>{closeM();fPdf.accept='.pdf';fPdf.click();};break;
-      case 'merge':pFiles=[];renderMerge();break;
-      case 'split':case 'rotate':case 'compress':case 'pinfo':
-        setSt('Select a PDF file…','load');fPdf.accept='.pdf';fPdf.click();break;
-      case 'watermark':
-        openM(`<h3>💧 Add Watermark</h3><p class="sub">Enter watermark text to overlay diagonally on every page.</p><input type="text" id="wT" placeholder="e.g. CONFIDENTIAL" value="CONFIDENTIAL"><select id="wO"><option value="0.1">Light (10%)</option><option value="0.2" selected>Medium (20%)</option><option value="0.4">Strong (40%)</option></select><div class="acts"><button class="btn-s" id="wX">Cancel</button><button class="btn-p" id="wGo">Select PDF</button></div>`);
-        $('wX').onclick=closeM;
-        $('wGo').onclick=()=>{wmText=$('wT').value||'CONFIDENTIAL';wmOpacity=parseFloat($('wO').value);closeM();pAction='watermarkApply';fPdf.accept='.pdf';fPdf.click();};break;
-      case 'protect':
-        openM(`<h3>🔐 Password Protect PDF</h3><p class="sub">Set a password to encrypt your PDF. It will be required to open the file.</p><input type="password" id="p1" placeholder="Enter password"><input type="password" id="p2" placeholder="Confirm password"><div class="acts"><button class="btn-s" id="pX">Cancel</button><button class="btn-p" id="pGo">Select PDF</button></div>`);
-        $('pX').onclick=closeM;
-        $('pGo').onclick=()=>{const a=$('p1').value,b=$('p2').value;if(!a||a!==b){setSt('❌ Passwords do not match','err');return;}pdfPwd=a;closeM();pAction='protectApply';fPdf.accept='.pdf';fPdf.click();};break;
-      case 'sign':launchSig();break;
-      case 'collage':launchCollage();break;
-      case 'timestamp':launchTimestamp();break;
-      case 'qr':launchQr();break;
-      case 'share':launchShare();break;
-    }
-  });
-});
-
-/* ── Overlay dismiss ── */
-ov.addEventListener('click',e=>{if(e.target===ov)closeM();});
-
-/* ── Init status ── */
-setSt('Ready — 20 tools loaded · Tap any card to begin','');
 })();
 </script>
 </body>
