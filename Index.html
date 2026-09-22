@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#0a0a0f">
+<title>ScanForge — Open-Source Document Suite</title>
+<!-- PDF Engine (pdf-lib) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<!-- File download helper -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+<!-- OpenCV.js — required by jscanify -->
+<script async src="https://docs.opencv.org/4.8.0/opencv.js"></script>
+<!-- jscanify — document edge detection & perspective correction -->
+<script src="https://cdn.jsdelivr.net/gh/puffinsoft/jscanify@master/src/jscanify.min.js"></script>
+<!-- Tesseract.js — OCR engine (100+ languages) -->
+<script src="https://unpkg.com/tesseract.js@v6.0.0/dist/tesseract.min.js"></script>
+<!-- jsQR — pure JS QR code reader -->
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+<style>
+:root{
+  --bg:#0a0a0f;--surface:#13131a;--surface2:#1c1c26;--surface3:#252533;
+  --text:#f0f0f5;--text2:#8b8b9e;--text3:#55556a;
+  --accent:#6366f1;--accent2:#818cf8;--accent-glow:rgba(99,102,241,.35);
+  --green:#22c55e;--red:#ef4444;--amber:#f59e0b;--cyan:#06b6d4;--pink:#ec4899;
+  --radius:16px;--radius-sm:10px;
+  --font:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  --mono:'SF Mono','Fira Code',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{font-size:16px}
+body{
+  font-family:var(--font);background:var(--bg);color:var(--text);
+  min-height:100dvh;overflow-x:hidden;padding-bottom:40px;
+  background-image:radial-gradient(ellipse 80% 50% at 50% -20%,rgba(99,102,241,.12),transparent);
+}
+.app{width:100%;max-width:720px;margin:0 auto;padding:0 16px}
+
+/* Header */
+.hdr{text-align:center;padding:36px 0 20px;position:relative}
+.hdr-logo{
+  font-size:40px;display:block;margin-bottom:8px;
+  filter:drop-shadow(0 0 20px var(--accent-glow));
+}
+.hdr h1{
+  font-size:28px;font-weight:800;letter-spacing:-1px;
+  background:linear-gradient(135deg,#c7d2fe,#6366f1,#ec4899);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.hdr p{font-size:13px;color:var(--text2);margin-top:4px;letter-spacing:.2px}
+.oss-badge{
+  display:inline-flex;align-items:center;gap:5px;
+  margin-top:10px;padding:4px 12px;border-radius:20px;
+  background:linear-gradient(135deg,rgba(34,197,94,.15),rgba(6,182,212,.15));
+  border:1px solid rgba(34,197,94,.3);
+  font-size:10px;font-weight:700;color:var(--green);
+  letter-spacing:.8px;text-transform:uppercase;
+}
+
+/* Status */
+.status{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  padding:12px 16px;border-radius:var(--radius-sm);
+  background:var(--surface);border:1px solid rgba(255,255,255,.06);
+  font-size:13px;color:var(--text2);min-height:46px;
+  margin-bottom:16px;transition:all .3s;
+}
+.status.ok{color:var(--green);border-color:rgba(34,197,94,.3);background:rgba(34,197,94,.06)}
+.status.err{color:var(--red);border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.06)}
+.status.load{color:var(--accent2);border-color:rgba(99,102,241,.3);background:rgba(99,102,241,.06)}
+.status.warn{color:var(--amber);border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.06)}
+.spin{width:14px;height:14px;border:2px solid rgba(255,255,255,.15);border-top-color:var(--accent2);border-radius:50%;animation:spin .55s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Section */
+.sec{font-size:10px;font-weight:800;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;margin:22px 0 10px;padding-left:4px}
+
+/* Grid */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px}
+.tool{
+  background:var(--surface);border-radius:var(--radius);
+  padding:18px 14px;display:flex;flex-direction:column;
+  align-items:flex-start;cursor:pointer;position:relative;
+  border:1px solid rgba(255,255,255,.05);overflow:hidden;
+  transition:transform .18s,background .18s,border-color .18s;
+  user-select:none;
+}
+.tool::before{
+  content:'';position:absolute;inset:0;opacity:0;
+  background:linear-gradient(135deg,rgba(99,102,241,.08),transparent 60%);
+  transition:opacity .18s;
+}
+.tool:hover,.tool:active{transform:translateY(-2px);background:var(--surface2);border-color:rgba(255,255,255,.1)}
+.tool:hover::before,.tool:active::before{opacity:1}
+.tool .ico{font-size:26px;margin-bottom:10px;display:block}
+.tool .name{font-size:13px;font-weight:700;line-height:1.25;position:relative;z-index:1}
+.tool .desc{font-size:10.5px;color:var(--text3);margin-top:3px;line-height:1.3;position:relative;z-index:1}
+.tag{
+  position:absolute;top:8px;right:8px;font-size:8px;font-weight:800;
+  padding:2px 7px;border-radius:6px;letter-spacing:.4px;text-transform:uppercase;
+}
+.tag.new{background:rgba(34,197,94,.2);color:var(--green);border:1px solid rgba(34,197,94,.3)}
+.tag.pro{background:rgba(236,72,153,.2);color:var(--pink);border:1px solid rgba(236,72,153,.3)}
+.tag.ai{background:rgba(6,182,212,.2);color:var(--cyan);border:1px solid rgba(6,182,212,.3)}
+
+/* Modal */
+.overlay{
+  position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.8);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  display:none;align-items:center;justify-content:center;padding:16px;
+}
+.overlay.on{display:flex}
+.modal{
+  background:var(--surface);border-radius:20px;padding:24px;
+  width:100%;max-width:460px;max-height:88dvh;overflow-y:auto;
+  border:1px solid rgba(255,255,255,.08);
+  box-shadow:0 24px 80px rgba(0,0,0,.6);
+  animation:pop .22s ease-out;
+}
+@keyframes pop{from{opacity:0;transform:scale(.95) translateY(10px)}to{opacity:1;transform:none}}
+.modal h3{font-size:17px;font-weight:800;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.modal .sub{font-size:12px;color:var(--text2);margin-bottom:16px;line-height:1.5}
+.modal input,.modal select,.modal textarea{
+  width:100%;padding:13px 15px;border-radius:var(--radius-sm);
+  border:1px solid rgba(255,255,255,.1);background:rgba(0,0,0,.35);
+  color:var(--text);font-size:14px;font-family:var(--font);
+  outline:none;margin-bottom:10px;transition:border-color .15s;
+}
+.modal input:focus,.modal select:focus,.modal textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+.modal textarea{min-height:100px;resize:vertical;font-family:var(--mono);font-size:12.5px;line-height:1.55}
+.modal select{cursor:pointer}
+.acts{display:flex;gap:8px;margin-top:6px}
+.acts button{
+  flex:1;padding:13px;border-radius:var(--radius-sm);border:none;
+  font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font);
+  transition:all .15s;letter-spacing:.2px;
+}
+.btn-p{background:var(--accent);color:#fff}
+.btn-p:hover{background:var(--accent2)}
+.btn-s{background:rgba(255,255,255,.07);color:var(--text)}
+.btn-s:hover{background:rgba(255,255,255,.12)}
+.btn-g{background:var(--green);color:#fff}
+.btn-r{background:var(--red);color:#fff}
+.btn-wide{flex:1!important}
+
+/* Preview */
+.preview-wrap{position:relative;width:100%;border-radius:14px;overflow:hidden;background:#000;margin-bottom:12px}
+.preview-wrap video,.preview-wrap canvas{width:100%;display:block;border-radius:14px}
+.preview-wrap canvas.ov{position:absolute;top:0;left:0;border-radius:0}
+.preview-wrap img{width:100%;display:block;border-radius:14px}
+
+/* Chips */
+.chips{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.chip{
+  padding:7px 14px;border-radius:20px;font-size:11px;font-weight:700;
+  background:rgba(255,255,255,.06);color:var(--text2);cursor:pointer;
+  border:1.5px solid transparent;transition:all .15s;
+}
+.chip:hover{background:rgba(255,255,255,.1)}
+.chip.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* File list */
+.flist{max-height:180px;overflow-y:auto;margin-bottom:10px}
+.fitem{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 13px;background:rgba(0,0,0,.25);border-radius:9px;
+  margin-bottom:5px;font-size:12.5px;gap:8px;
+}
+.fitem span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fitem .rm{color:var(--red);cursor:pointer;font-size:16px;padding:0 4px;flex-shrink:0;font-weight:700}
+.fitem .rm:hover{opacity:.7}
+
+/* OCR output */
+.ocr-box{
+  background:rgba(0,0,0,.3);border-radius:10px;padding:14px;
+  font-size:12.5px;line-height:1.7;max-height:240px;overflow-y:auto;
+  white-space:pre-wrap;word-break:break-word;font-family:var(--mono);
+  border:1px solid rgba(255,255,255,.07);color:#d4d4e0;
+}
+/* Signature */
+#sigPad{width:100%;height:180px;border-radius:12px;background:#fff;touch-action:none;margin-bottom:10px;cursor:crosshair}
+/* QR */
+#qrBox{font-size:13px;color:var(--green);text-align:center;padding:8px;word-break:break-all;min-height:24px}
+/* Footer */
+.foot{text-align:center;font-size:10.5px;color:var(--text3);margin-top:32px;padding:16px 0;line-height:1.8}
+.foot a{color:var(--text2);text-decoration:none}
+.hidden{display:none!important}
+@media(max-width:440px){
+  .grid{grid-template-columns:repeat(2,1fr);gap:8px}
+  .hdr h1{font-size:23px}
+  .tool{padding:14px 12px}
+  .tool .ico{font-size:22px;margin-bottom:7px}
+  .tool .name{font-size:12px}
+  .modal{padding:20px;border-radius:16px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<header class="hdr">
+  <span class="hdr-logo">⚡</span>
+  <h1>ScanForge</h1>
+  <p>Open-source document intelligence suite</p>
+  <span class="oss-badge">● 100% Free · No Watermark · No Ads</span>
+</header>
+
+<div class="status" id="st">Ready — select a tool to begin</div>
+
+<div class="sec">Scan & Capture</div>
+<div class="grid" id="g1">
+  <div class="tool" data-a="scan"><span class="ico">📷</span><span class="name">Scan Document</span><span class="desc">Auto-crop · Perspective · Enhance</span></div>
+  <div class="tool" data-a="idcard"><span class="ico">🪪</span><span class="name">ID Card Scan</span><span class="desc">Front + Back on one page</span></div>
+  <div class="tool" data-a="book"><span class="ico">📖</span><span class="name">Book Mode</span><span class="desc">Auto-split two pages</span></div>
+  <div class="tool" data-a="batch"><span class="ico">📚</span><span class="name">Batch Scan</span><span class="desc">Unlimited multi-page capture</span></div>
+</div>
+
+<div class="sec">Recognize & Convert</div>
+<div class="grid" id="g2">
+  <div class="tool" data-a="ocr"><span class="ico">🔍</span><span class="name">OCR Text</span><span class="desc">100+ languages</span></div>
+  <div class="tool" data-a="ocrExcel"><span class="ico">📊</span><span class="name">OCR → Excel</span><span class="desc">Table extraction to CSV</span><span class="tag new">New</span></div>
+  <div class="tool" data-a="imgPdf"><span class="ico">🖼️</span><span class="name">Images → PDF</span><span class="desc">JPG / PNG to multi-page</span></div>
+  <div class="tool" data-a="pdfWord"><span class="ico">📝</span><span class="name">PDF → Word</span><span class="desc">DOCX text export</span><span class="tag new">New</span></div>
+</div>
+
+<div class="sec">PDF Tools</div>
+<div class="grid" id="g3">
+  <div class="tool" data-a="merge"><span class="ico">🔗</span><span class="name">Merge PDFs</span><span class="desc">Combine unlimited files</span></div>
+  <div class="tool" data-a="split"><span class="ico">✂️</span><span class="name">Split PDF</span><span class="desc">Extract page ranges</span></div>
+  <div class="tool" data-a="rotate"><span class="ico">🔄</span><span class="name">Rotate PDF</span><span class="desc">90° / 180° / 270°</span></div>
+  <div class="tool" data-a="compress"><span class="ico">🗜️</span><span class="name">Compress PDF</span><span class="desc">Reduce file size</span></div>
+  <div class="tool" data-a="watermark"><span class="ico">💧</span><span class="name">Watermark</span><span class="desc">Custom text overlay</span><span class="tag pro">Pro</span></div>
+  <div class="tool" data-a="protect"><span class="ico">🔐</span><span class="name">Password PDF</span><span class="desc">AES encryption</span><span class="tag pro">Pro</span></div>
+  <div class="tool" data-a="sign"><span class="ico">✍️</span><span class="name">E-Signature</span><span class="desc">Draw & stamp</span><span class="tag pro">Pro</span></div>
+  <div class="tool" data-a="pinfo"><span class="ico">ℹ️</span><span class="name">PDF Info</span><span class="desc">Pages & file size</span></div>
+</div>
+
+<div class="sec">Productivity</div>
+<div class="grid" id="g4">
+  <div class="tool" data-a="collage"><span class="ico">🎨</span><span class="name">Doc Collage</span><span class="desc">2–4 images on one page</span><span class="tag new">New</span></div>
+  <div class="tool" data-a="timestamp"><span class="ico">⏰</span><span class="name">Timestamp Cam</span><span class="desc">Time + GPS overlay</span><span class="tag new">New</span></div>
+  <div class="tool" data-a="qr"><span class="ico">📱</span><span class="name">QR Scanner</span><span class="desc">jsQR live detection</span><span class="tag new">New</span></div>
+  <div class="tool" data-a="share"><span class="ico">📤</span><span class="name">Share Files</span><span class="desc">Native share sheet</span></div>
+</div>
+
+<footer class="foot">
+  Built on: jscanify · OpenCV.js · Tesseract.js · pdf-lib · jsQR · FileSaver<br>
+  All processing runs locally in your browser. No data is uploaded.
+</footer>
+</div>
+
+<!-- Hidden inputs -->
+<input type="file" id="fPdf" accept=".pdf" multiple class="hidden">
+<input type="file" id="fImg" accept="image/*" multiple class="hidden">
+
+<!-- Modal -->
+<div class="overlay" id="ov"><div class="modal" id="mc"></div></div>
+
+<script>
+(function(){
+'use strict';
+const {PDFDocument,rgb,degrees,StandardFonts}=PDFLib;
+
+/* ── State ── */
+let pFiles=[],pAction=null,pImgs=[],scanner=null,stream=null,rafId=null,cvReady=false;
+let activeFilter='enhance',ocrLang='eng',sigBlob=null,wmText='CONFIDENTIAL',wmOpacity=.2,pdfPwd='';
+
+/* ── DOM ── */
+const $=id=>document.getElementById(id);
+const st=$('st'),ov=$('ov'),mc=$('mc'),fPdf=$('fPdf'),fImg=$('fImg');
+
+/* ── Utilities ── */
+function setSt(msg,type){st.textContent=msg;st.className='status'+(type?' '+type:'');}
+function loadSt(msg){st.innerHTML='<span class="spin"></span>'+msg;st.className='status load';}
+function dl(blob,name){saveAs(blob,name);}
+function openM(html){mc.innerHTML=html;ov.classList.add('on');}
+function closeM(){ov.classList.remove('on');mc.innerHTML='';pFiles=[];pAction=null;pImgs=[];killScan();}
+function fBytes(b){if(b<1024)return b+' B';if(b<1048576)return(b/1024).toFixed(1)+' KB';return(b/1048576).toFixed(2)+' MB';}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+/* ── OpenCV init ── */
+function initCv(){
+  return new Promise(res=>{
+    if(typeof cv!=='undefined'&&cv.getBuildInformation){cvReady=true;return res();}
+    const t=setInterval(()=>{
+      if(typeof cv!=='undefined'){
+        if(cv.getBuildInformation){cvReady=true;clearInterval(t);res();}
+        else{cv['onRuntimeInitialized']=()=>{cvReady=true;clearInterval(t);res();};}
+      }
+    },200);
+    setTimeout(()=>{clearInterval(t);res();},20000);
+  });
+}
+initCv();
+
+/* ── Filters ── */
+function applyFilter(cv2,filter){
+  const ctx=cv2.getContext('2d');const id=ctx.getImageData(0,0,cv2.width,cv2.height);const d=id.data;
+  if(filter==='gray'){for(let i=0;i<d.length;i+=4){const g=.299*d[i]+.587*d[i+1]+.114*d[i+2];d[i]=d[i+1]=d[i+2]=g;}}
+  else if(filter==='bw'){for(let i=0;i<d.length;i+=4){const g=.299*d[i]+.587*d[i+1]+.114*d[i+2];const v=g>140?255:0;d[i]=d[i+1]=d[i+2]=v;}}
+  else{const c=1.35,b=12,ic=128*(1-c);for(let i=0;i<d.length;i+=4){d[i]=Math.min(255,Math.max(0,d[i]*c+ic+b));d[i+1]=Math.min(255,Math.max(0,d[i+1]*c+ic+b));d[i+2]=Math.min(255,Math.max(0,d[i+2]*c+ic+b));}}
+  ctx.putImageData(id,0,0);return cv2;
+}
+
+/* ── Scanner core ── */
+function killScan(){
+  if(rafId){cancelAnimationFrame(rafId);rafId=null;}
+  if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}
+  scanner=null;
+}
+async function launchScan(mode){
+  if(!cvReady){setSt('⏳ Loading OpenCV engine…','warn');await initCv();if(!cvReady){setSt('❌ OpenCV failed to load. Check connection.','err');return;}}
+  scanner=new jscanify();activeFilter='enhance';
+  const isBook=mode==='book',isBatch=mode==='batch';
+  const titles={document:'📷 Scan Document',book:'📖 Book Mode',batch:'📚 Batch Scan'};
+  const hints={document:'Align the document inside the frame. Green outline = detected.',book:'Point at an open book — each capture auto-splits into two pages.',batch:'Capture as many pages as you need, then tap Done to build the PDF.'};
+  openM(
+    `<h3>${titles[mode]||'📷 Scan'}</h3>`+
+    `<p class="sub">${hints[mode]||''}</p>`+
+    `<div class="preview-wrap"><video id="v" autoplay playsinline muted></video><canvas id="ovl" class="ov"></canvas></div>`+
+    `<div class="chips" id="chips">`+
+      `<span class="chip on" data-f="enhance">🎨 Enhance</span>`+
+      `<span class="chip" data-f="gray">⬜ Grayscale</span>`+
+      `<span class="chip" data-f="bw">⬛ B&W</span></div>`+
+    `<div class="acts"><button class="btn-s" id="sCancel">Cancel</button><button class="btn-p" id="sCap">📸 Capture</button></div>`+
+    (isBatch?`<div class="acts" style="margin-top:6px"><button class="btn-g btn-wide" id="batchDone">✅ Done — Create PDF</button></div>`:'')
+  );
+  const vid=$('v'),ovl=$('ovl'),ctx=ovl.getContext('2d');let batch=[];
+  try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1920},height:{ideal:1080}}});}
+  catch(e){setSt('❌ Camera permission denied','err');closeM();return;}
+  vid.srcObject=stream;await vid.play();
+  document.querySelectorAll('.chip').forEach(c=>{c.onclick=()=>{document.querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));c.classList.add('on');activeFilter=c.dataset.f;};});
+  (function loop(){
+    if(!scanner||!vid.videoWidth){rafId=requestAnimationFrame(loop);return;}
+    ovl.width=vid.videoWidth;ovl.height=vid.videoHeight;
+    const tmp=document.createElement('canvas');tmp.width=vid.videoWidth;tmp.height=vid.videoHeight;
+    tmp.getContext('2d').drawImage(vid,0,0);
+    try{const hl=scanner.highlightPaper(tmp);ctx.clearRect(0,0,ovl.width,ovl.height);ctx.drawImage(hl,0,0,ovl.width,ovl.height);}catch(e){}
+    rafId=requestAnimationFrame(loop);
+  })();
+  $('sCancel').onclick=closeM;
+  if(isBatch)$('batchDone').onclick=async()=>{if(!batch.length){setSt('❌ No pages captured yet','err');return;}killScan();await pdfFromCanvases(batch,'batch');closeM();};
+  $('sCap').onclick=()=>doCapture(vid,mode,batch,isBatch);
+}
+async function doCapture(vid,mode,batch,isBatch){
+  if(!scanner)return;
+  const cap=document.createElement('canvas');cap.width=vid.videoWidth;cap.height=vid.videoHeight;cap.getContext('2d').drawImage(vid,0,0);
+  try{
+    const pw=1400,ph=Math.round(1400*(cap.height/cap.width));
+    let res=scanner.extractPaper(cap,pw,ph);applyFilter(res,activeFilter);
+    if(mode==='book'){
+      const hw=Math.floor(res.width/2);
+      const L=document.createElement('canvas');L.width=hw;L.height=res.height;L.getContext('2d').drawImage(res,0,0,hw,res.height,0,0,hw,res.height);
+      const R=document.createElement('canvas');R.width=hw;R.height=res.height;R.getContext('2d').drawImage(res,hw,0,hw,res.height,0,0,hw,res.height);
+      if(isBatch){batch.push(L,R);setSt(`📖 ${batch.length} pages captured — continue or tap Done`,'load');return;}
+      const lb=await toBlob(L),rb=await toBlob(R);killScan();showBook(lb,rb);return;
+    }
+    const blob=await toBlob(res);
+    if(isBatch){batch.push(res);setSt(`📚 ${batch.length} pages captured — continue or tap Done`,'load');return;}
+    killScan();showScan(blob,mode);
+  }catch(e){setSt('❌ Capture failed: '+e.message,'err');}
+}
+function toBlob(c){return new Promise(r=>c.toBlob(r,'image/jpeg',.92));}
+function showScan(blob){
+  const url=URL.createObjectURL(blob);
+  openM(
+    `<h3>✅ Scan Complete</h3>`+
+    `<div class="preview-wrap"><img src="${url}"></div>`+
+    `<div class="acts"><button class="btn-s" id="rTry">Retake</button><button class="btn-p" id="sJpg">Save JPG</button></div>`+
+    `<div class="acts" style="margin-top:6px"><button class="btn-g btn-wide" id="sPdf">📄 Save as PDF</button></div>`
+  );
+  $('rTry').onclick=()=>{URL.revokeObjectURL(url);closeM();launchScan('document');};
+  $('sJpg').onclick=()=>{dl(blob,'scan_'+uid()+'.jpg');setSt('✅ Scan saved as JPG','ok');closeM();};
+  $('sPdf').onclick=async()=>{const d=await PDFDocument.create();const b=await blob.arrayBuffer();const im=await d.embedJpg(b);const p=d.addPage([im.width,im.height]);p.drawImage(im,{x:0,y:0,width:im.width,height:im.height});const by=await d.save();dl(new Blob([by],{type:'application/pdf'}),'scan_'+uid()+'.pdf');setSt('✅ Scan saved as PDF','ok');closeM();};
+}
+function showBook(lb,rb){
+  const lu=URL.createObjectURL(lb),ru=URL.createObjectURL(rb);
+  openM(
+    `<h3>📖 Book Pages Extracted</h3>`+
+    `<div style="display:flex;gap:8px;margin-bottom:14px"><img src="${lu}" style="width:50%;border-radius:8px"><img src="${ru}" style="width:50%;border-radius:8px"></div>`+
+    `<div class="acts"><button class="btn-s" id="bTry">Retake</button><button class="btn-g btn-wide" id="bSave">📄 Save Both as PDF</button></div>`
+  );
+  $('bTry').onclick=()=>{URL.revokeObjectURL(lu);URL.revokeObjectURL(ru);closeM();launchScan('book');};
+  $('bSave').onclick=async()=>{
+    const d=await PDFDocument.create();
+    for(const b of[lb,rb]){const bf=await b.arrayBuffer();const im=await d.embedJpg(bf);const p=d.addPage([im.width,im.height]);p.drawImage(im,{x:0,y:0,width:im.width,height:im.height});}
+    const by=await d.save();dl(new Blob([by],{type:'application/pdf'}),'book_'+uid()+'.pdf');setSt('✅ Book pages saved as PDF','ok');
+    URL.revokeObjectURL(lu);URL.revokeObjectURL(ru);closeM();
+  };
+}
+async function pdfFromCanvases(canvases,prefix){
+  loadSt('Creating PDF…');
+  try{
+    const d=await PDFDocument.create();
+    for(const c of canvases){const b=await toBlob(c);const bf=await b.arrayBuffer();const im=await d.embedJpg(bf);const p=d.addPage([im.width,im.height]);p.drawImage(im,{x:0,y:0,width:im.width,height:im.height});}
+    const by=await d.save();dl(new Blob([by],{type:'application/pdf'}),prefix+'_'+uid()+'.pdf');
+    setSt('✅ PDF created with '+canvases.length+' pages','ok');
+  }catch(e){setSt('❌ Error: '+e.message,'err');}
+}
+
+/* ── ID Card ── */
+function launchId(){
+  openM(
+    `<h3>🪪 ID Card Scan</h3><p class="sub">Select front and back images. They will be combined onto a single A4 page.</p>`+
+    `<input type="file" id="idF" accept="image/*" style="margin-bottom:8px"><input type="file" id="idB" accept="image/*" style="margin-bottom:12px">`+
+    `<div class="acts"><button class="btn-s" id="idX">Cancel</button><button class="btn-p" id="idGo">Combine</button></div>`
+  );
+  $('idX').onclick=closeM;
+  $('idGo').onclick=async()=>{
+    const ff=$('idF').files[0],bf=$('idB').files[0];
+    if(!ff||!bf){setSt('❌ Please select both front and back','err');return;}
+    loadSt('🪪 Combining ID card…');
+    try{
+      const d=await PDFDocument.create();
+      const fi=await d.embedJpg(await ff.arrayBuffer());const bi=await d.embedJpg(await bf.arrayBuffer());
+      const pg=d.addPage([595,842]);const m=40;const aw=595-m*2;
+      const fs=Math.min(aw/fi.width,(842/2-m)/fi.height);const bs=Math.min(aw/bi.width,(842/2-m)/bi.height);
+      pg.drawImage(fi,{x:(595-fi.width*fs)/2,y:842/2+20,width:fi.width*fs,height:fi.height*fs});
+      pg.drawImage(bi,{x:(595-bi.width*bs)/2,y:842/2-bi.height*bs-20,width:bi.width*bs,height:bi.height*bs});
+      const by=await d.save();dl(new Blob([by],{type:'application/pdf'}),'id_'+uid()+'.pdf');setSt('✅ ID card combined → A4 PDF','ok');closeM();
+    }catch(e){setSt('❌ Error: '+e.message,'err');}
+  };
+}
+
+/* ── OCR ── */
+function launchOcr(toExcel){
+  pAction=toExcel?'ocrExcel':'ocr';
+  openM(
+    `<h3>🔍 OCR — Select Language</h3>`+
+    `<select id="lg">`+
+    `<option value="eng">English</option><option value="chi_sim">Chinese (Simplified)</option><option value="chi_tra">Chinese (Traditional)</option>`+
+    `<option value="jpn">Japanese</option><option value="kor">Korean</option><option value="fra">French</option><option value="deu">German</option>`+
+    `<option value="spa">Spanish</option><option value="por">Portuguese</option><option value="rus">Russian</option><option value="ara">Arabic</option>`+
+    `<option value="hin">Hindi</option><option value="ita">Italian</option><option value="nld">Dutch</option><option value="tur">Turkish</option></select>`+
+    `<div class="acts"><button class="btn-s" id="oX">Cancel</button><button class="btn-p" id="oGo">Select Image</button></div>`
+  );
+  $('oX').onclick=closeM;
+  $('oGo').onclick=()=>{ocrLang=$('lg').value;closeM();fImg.accept='image/*';fImg.click();};
+}
+async function runOcr(file,toExcel){
+  loadSt('🔍 Recognizing text ('+ocrLang+')…');
+  try{
+    const w=await Tesseract.createWorker(ocrLang,1,{logger:m=>{if(m.status==='recognizing text')setSt('🔍 OCR: '+Math.round(m.progress*100)+'%','load');}});
+    const{data:{text}}=await w.recognize(file);await w.terminate();
+    const clean=text.trim()||'(No text detected)';
+    if(toExcel){
+      const lines=clean.split('\n').filter(l=>l.trim());
+      const csv=lines.map(l=>l.split(/\s{2,}|\t/).map(c=>'"'+c.replace(/"/g,'""')+'"').join(',')).join('\n');
+      dl(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}),'table_'+uid()+'.csv');
+      setSt('✅ Table exported as CSV — opens in Excel','ok');closeM();return;
+    }
+    openM(
+      `<h3>🔍 OCR Result</h3><div class="ocr-box">${esc(clean)}</div>`+
+      `<div class="acts" style="margin-top:10px"><button class="btn-s" id="oCl">Close</button><button class="btn-p" id="oCp">Copy</button></div>`+
+      `<div class="acts" style="margin-top:6px"><button class="btn-g btn-wide" id="oTx">💾 Save as .txt</button></div>`
+    );
+    $('oCl').onclick=closeM;
+    $('oCp').onclick=()=>{navigator.clipboard.writeText(clean).then(()=>setSt('✅ Text copied','ok'));};
+    $('oTx').onclick=()=>{dl(new Blob([clean],{type:'text/plain'}),'ocr_'+uid()+'.txt');setSt('✅ Saved as .txt','ok');closeM();};
+    setSt('✅ OCR complete','ok');
+  }catch(e){setSt('❌ OCR failed: '+e.message,'err');}
+}
+
+/* ── PDF ops ── */
+async function doMerge(files){
+  loadSt('Merging '+files.length+' PDFs…');
+  try{
+    const m=await PDFDocument.create();
+    for(const f of files){const b=await f.arrayBuffer();const d=await PDFDocument.load(b,{ignoreEncryption:true});const pgs=await m.copyPages(d,d.getPageIndices());pgs.forEach(p=>m.addPage(p));}
+    const by=await m.save();dl(new Blob([by],{type:'application/pdf'}),'merged.pdf');setSt('✅ Merged '+files.length+' PDFs','ok');
+  }catch(e){setSt('❌ Error: '+e.message,'err');}
+}
+async function doSplit(file,range){
+  loadSt('Splitting PDF…');
+  try{
+    const b=await file.arrayBuffer();const s=await PDFDocument.load(b,{ignoreEncryption:true});const t=s.getPageCount();let idx=[];
+    if(range&&range.trim()){const parts=range.split(',').map(x=>x.trim());for(const p of parts){if(p.includes('-')){const[a,z]=p.split('-').map(Number);for(let i=Math.max(1,a);i<=Math.min(t,z);i++)idx.push(i-1);}else{const n=Number(p);if(n>=1&&n<=t)idx.push(n-1);}}}
+    else idx=Array.from({length:t},(_,i)=>i);
+    if(!idx.length){setSt('❌ No valid pages','err');return;}
+    const o=await PDFDocument.create();const pgs=await o.copyPages(s,idx);pgs.forEach(p=>o.addPage(p));const by=await o.save();
+    dl(new Blob([by],{type:'application/pdf'}),'split_'+idx.length+'p.pdf');setSt('✅ '+idx.length+' pages extracted','ok');
+  }catch(e){setSt('❌ Error: '+e.message,'err');}
+}
+async function doRotate(file,deg){
+  loadSt('Rotating…');
+  try{const b=await file.arrayBuffer();const d=await PDFDocument.load(b,{ignoreEncryption:true});d.getPages().forEach(p=>p.setRotation(degrees(deg)));const by=await d.save();dl(new Blob([by],{type:'application/pdf'}),'rotated_'+deg+'.pdf');setSt('✅ Rotated '+deg+'°','ok');}
+  catch(e){setSt('❌ Error: '+e.message,'err');}
+}
+async function doCompress(file){
+  loadSt('Compressing…');
+  try{const b=await file.arrayBuffer();const d=await PDFDocument.load(b,{ignoreEncryption:true});const by=await d.save({useObjectStreams:true});const o=(file.size/1024).toFixed(0);const n=(by.length/1024).toFixed(0);dl(new Blob([by],{type:'application/pdf'}),'compressed.pdf');setSt('✅ '+o+' KB → '+n+' KB','ok');}
+  catch(e){setSt('❌ Error: '+e.message,'err');}
+}
+async function doWatermark(file){
+  loadSt('💧 Adding watermark…');
+  try{const b=await file.arrayBuffer();const d=await PDFDocument.load(b,{ignoreEncryption:true});const ft=await d.embedFont(StandardFonts.HelveticaBold);
+    for(const p of d.getPages()){const{width:w,height:h}=p.getSize();const fs=Math.min(w,h)*.1;const tw=ft.widthOfTextAtSize(wmText,fs);p.drawText(wmText,{x:(w-tw)/2,y:h/2-fs/3,size:fs,font:ft,color:rgb(.5,.5,.5),opacity:wmOpacity,rotate:degrees(45)});}
+    const by=await d.save();dl(new Blob([by],{type:'application/pdf'}),'watermarked_'+uid()+'.pdf');setSt('✅ Watermark added','ok');}
+  catch(e){setSt('❌ Error: '+e.message,'err');}
+}
+async function doProtect(file){
+  loadSt('🔐 Encrypting…');
+  try{const b=await file.arrayBuffer();const d=await PDFDocument.load(b,{ignoreEncryption:true});const by=await d.save({userPassword:pdfPwd,ownerPassword:pdfPwd+'_o',permissions:{printing:'highResolution',modifying:false,copying:false}});dl(new Blob([by],{type:'application/pdf'}),'protected_'+uid()+'.pdf');setSt('✅ PDF encrypted','ok');}
+  catch(e){setSt('❌ Error: '+e.message,'err');}
+}
+async function doSign(file){
+  loadSt('✍️ Applying signature…');
+  try{const b=await file.arrayBuffer();const d=await PDFDocument.load(b,{ignoreEncryption:true});const sb=await sigBlob.arrayBuffer();const im=await d.embedPng(sb);const pgs=d.getPages();const lp=pgs[pgs.length-1];const{width:w}=lp.getSize();const sw=Math.min(200,w*.35);const sh=sw*(im.height/im.width);lp.drawImage(im,{x:w-sw-40,y:40,width:sw,height:sh});const by=await d.save();dl(new Blob([by],{type:'application/pdf'}),'signed_'+uid()+'.pdf');setSt('✅ Signature added','ok');}
+  catch(e){setSt('❌ Error: '+e.message,'err');}
+}
+async function doInfo(file){
+  loadSt('Reading…');
+  try{const b=await file.arrayBuffer();const d=await PDFDocument.load(b,{ignoreEncryption:true});setSt('📄 '+file.name+' — '+d.getPageCount()+' pages, '+fBytes(file.size),'ok');}
+  catch(e){setSt('❌ Error: '+e.message,'err');}
+}
+async function doPdfWord(file){
+  loadSt('📝 Extracting text…');
+  try{
+    const b=await file.arrayBuffer();const d=await PDFDocument.load(b,{ignoreEncryption:true});let all='';
+    for(const p of d.getPages()){try{const t=await p.getText();all+=(t||'')+'\n\n';}catch(e){}}
+    if(!all.trim()){setSt('❌ No extractable text found (PDF may be image-only)','err');return;}
+    const xml='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>'+all.split('\n').map(l=>'<w:p><w:r><w:t xml:space="preserve">'+l.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</w:t></w:r></w:p>').join('')+'</w:body></w:document>';
+    dl(new Blob([xml],{type:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'}),'extracted_'+uid()+'.docx');
+    setSt('✅ Text extracted → .docx','ok');
+  }catch(e){setSt('❌ Error: '+e.message,'err');}
+}
+
+/* ── Images → PDF ── */
+function launchImgPdf(){
+  pImgs=[];
+  openM(`<h3>🖼️ Images → PDF</h3><div class="flist" id="ifList"><p style="color:var(--text2);font-size:12px">No images selected</p></div><div class="acts"><button class="btn-s" id="iAdd">Add Image</button><button class="btn-p" id="iGo">Convert to PDF</button></div><div class="acts" style="margin-top:6px"><button class="btn-s btn-wide" id="iX">Cancel</button></div>`);
+  renderImgList();
+  $('iAdd').onclick=()=>{fImg.accept='image/*';fImg.click();};
+  $('iX').onclick=closeM;
+  $('iGo').onclick=async()=>{
+    if(!pImgs.length){setSt('❌ No images selected','err');return;}
+    loadSt('Converting '+pImgs.length+' images…');
+    try{
+      const d=await PDFDocument.create();
+      for(const f of pImgs){const b=await f.arrayBuffer();let im;if(f.type==='image/png')im=await d.embedPng(b);else im=await d.embedJpg(b);const p=d.addPage([im.width,im.height]);p.drawImage(im,{x:0,y:0,width:im.width,height:im.height});}
+      const by=await d.save();dl(new Blob([by],{type:'application/pdf'}),'images_'+uid()+'.pdf');setSt('✅ '+pImgs.length+' images → PDF','ok');closeM();
+    }catch(e){setSt('❌ Error: '+e.message,'err');}
+  };
+}
+function renderImgList(){
+  const el=$('ifList');if(!el)return;
+  if(!pImgs.length){el.innerHTML='<p style="color:var(--text2);font-size:12px">No images selected</p>';return;}
+  el.innerHTML=pImgs.map((f,i)=>`<div class="fitem"><span>${esc(f.name)}</span><span class="rm" data-i="${i}">✕</span></div>`).join('');
+  el.querySelectorAll('.rm').forEach(x=>{x.onclick=()=>{pImgs.splice(+x.dataset.i,1);renderImgList();};});
+}
+
+/* ── Collage ── */
+function launchCollage(){
+  openM(`<h3>🎨 Doc Collage</h3><p class="sub">Select 2–4 images to arrange on a single A4 PDF page.</p><input type="file" id="clF" accept="image/*" multiple style="margin-bottom:12px"><div class="acts"><button class="btn-s" id="clX">Cancel</button><button class="btn-p" id="clGo">Create</button></div>`);
+  $('clX').onclick=closeM;
+  $('clGo').onclick=async()=>{
+    const files=Array.from($('clF').files).slice(0,4);
+    if(files.length<2){setSt('❌ Select at least 2 images','err');return;}
+    loadSt('🎨 Creating collage…');
+    try{
+      const d=await PDFDocument.create();const pg=d.addPage([595,842]);const m=30,gap=10,n=files.length;
+      const cols=n<=2?1:2,rows=Math.ceil(n/cols);const cw=(595-m*2-gap*(cols-1))/cols;const ch=(842-m*2-gap*(rows-1))/rows;
+      for(let i=0;i<n;i++){const b=await files[i].arrayBuffer();let im;try{im=await d.embedPng(b);}catch(e){im=await d.embedJpg(b);}
+        const c=i%cols,r=Math.floor(i/cols);const x=m+c*(cw+gap);const y=842-m-(r+1)*ch-r*gap;
+        const s=Math.min(cw/im.width,ch/im.height);pg.drawImage(im,{x:x+(cw-im.width*s)/2,y:y+(ch-im.height*s)/2,width:im.width*s,height:im.height*s});}
+      const by=await d.save();dl(new Blob([by],{type:'application/pdf'}),'collage_'+uid()+'.pdf');setSt('✅ Collage created','ok');closeM();
+    }catch(e){setSt('❌ Error: '+e.message,'err');}
+  };
+}
+
+/* ── Timestamp ── */
+async function launchTimestamp(){
+  openM(`<h3>⏰ Timestamp Camera</h3><p class="sub">Capture an image with a real-time timestamp and GPS overlay burned into the photo.</p><div class="acts"><button class="btn-s" id="tX">Cancel</button><button class="btn-p" id="tGo">Open Camera</button></div>`);
+  $('tX').onclick=closeM;
+  $('tGo').onclick=async()=>{
+    closeM();
+    openM(`<h3>⏰ Timestamp Camera</h3><div class="preview-wrap"><video id="tv" autoplay playsinline muted></video></div><div class="acts"><button class="btn-s" id="tX2">Cancel</button><button class="btn-p" id="tCap">📸 Capture</button></div>`);
+    const vid=$('tv');let s;
+    try{s=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});}catch(e){setSt('❌ Camera denied','err');closeM();return;}
+    vid.srcObject=s;await vid.play();
+    $('tX2').onclick=()=>{s.getTracks().forEach(t=>t.stop());closeM();};
+    $('tCap').onclick=async()=>{
+      const c=document.createElement('canvas');c.width=vid.videoWidth;c.height=vid.videoHeight;const ctx=c.getContext('2d');ctx.drawImage(vid,0,0);
+      let loc='Location unavailable';
+      try{const p=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,{timeout:5000}));loc=p.coords.latitude.toFixed(4)+', '+p.coords.longitude.toFixed(4);}catch(e){}
+      const now=new Date().toLocaleString();
+      ctx.fillStyle='rgba(0,0,0,.6)';ctx.fillRect(0,c.height-70,c.width,70);
+      ctx.fillStyle='#fff';ctx.font='bold 18px sans-serif';ctx.fillText('🕐 '+now,16,c.height-42);
+      ctx.font='14px sans-serif';ctx.fillText('📍 '+loc,16,c.height-18);
+      const b=await toBlob(c);s.getTracks().forEach(t=>t.stop());dl(b,'timestamp_'+uid()+'.jpg');setSt('✅ Timestamp photo saved','ok');closeM();
+    };
+  };
+}
+
+/* ── QR ── */
+async function launchQr(){
+  openM(`<h3>📱 QR Scanner</h3><p class="sub">Point your camera at a QR code. Detection is powered by jsQR — runs fully offline.</p><div class="preview-wrap"><video id="qv" autoplay playsinline muted></video><canvas id="qc" class="hidden"></canvas></div><div id="qrBox"></div><div class="acts"><button class="btn-s btn-wide" id="qX">Close</button></div>`);
+  const vid=$('qv'),cnv=$('qc');let s;
+  try{s=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});}catch(e){setSt('❌ Camera denied','err');closeM();return;}
+  vid.srcObject=s;await vid.play();
+  const ctx=cnv.getContext('2d',{willReadFrequently:true});
+  let found=false;
+  (function scan(){
+    if(!s||!s.active||found)return;
+    if(vid.readyState===vid.HAVE_ENOUGH_DATA){
+      cnv.width=vid.videoWidth;cnv.height=vid.videoHeight;
+      ctx.drawImage(vid,0,0,cnv.width,cnv.height);
+      const id=ctx.getImageData(0,0,cnv.width,cnv.height);
+      const code=jsQR(id.data,id.width,id.height,{inversionAttempts:'dontInvert'});
+      if(code){
+        found=true;
+        $('qrBox').textContent='✅ '+code.data;
+        setSt('✅ QR detected','ok');
+        try{navigator.clipboard.writeText(code.data);}catch(e){}
+        return;
+      }
+    }
+    requestAnimationFrame(scan);
+  })();
+  $('qX').onclick=()=>{found=true;s.getTracks().forEach(t=>t.stop());closeM();};
+}
+
+/* ── Share ── */
+function launchShare(){
+  openM(`<h3>📤 Share Files</h3><p class="sub">Select files to share via your device's native share sheet.</p><input type="file" id="shF" multiple style="margin-bottom:12px"><div class="acts"><button class="btn-s" id="shX">Cancel</button><button class="btn-p" id="shGo">Share</button></div>`);
+  $('shX').onclick=closeM;
+  $('shGo').onclick=async()=>{
+    const files=$('shF').files;
+    if(!files.length){setSt('❌ No files selected','err');return;}
+    if(navigator.share&&navigator.canShare){try{await navigator.share({files:Array.from(files)});setSt('✅ Shared','ok');}catch(e){if(e.name!=='AbortError')setSt('❌ '+e.message,'err');}}
+    else setSt('⚠️ Native share not supported — use download instead','warn');
+    closeM();
+  };
+}
+
+/* ── Signature pad ── */
+function launchSig(){
+  openM(`<h3>✍️ Draw Your Signature</h3><p class="sub">Sign below with your finger or mouse. Then place it on a PDF.</p><canvas id="sigPad"></canvas><div class="acts"><button class="btn-s" id="sgC">Clear</button><button class="btn-p" id="sgS">Use Signature</button></div>`);
+  const cnv=$('sigPad');const ctx=cnv.getContext('2d');
+  cnv.width=cnv.offsetWidth*2;cnv.height=cnv.offsetHeight*2;ctx.scale(2,2);
+  ctx.strokeStyle='#000';ctx.lineWidth=2.5;ctx.lineCap='round';ctx.lineJoin='round';
+  let drawing=false;
+  function pos(e){const r=cnv.getBoundingClientRect();const t=e.touches?e.touches[0]:e;return{x:(t.clientX-r.left),y:(t.clientY-r.top)};}
+  cnv.addEventListener('pointerdown',e=>{drawing=true;const p=pos(e);ctx.beginPath();ctx.moveTo(p.x,p.y);});
+  cnv.addEventListener('pointermove',e=>{if(!drawing)return;const p=pos(e);ctx.lineTo(p.x,p.y);ctx.stroke();});
+  cnv.addEventListener('pointerup',()=>drawing=false);
+  cnv.addEventListener('pointerleave',()=>drawing=false);
+  $('sgC').onclick=()=>ctx.clearRect(0,0,cnv.width,cnv.height);
+  $('sgS').onclick=async()=>{
+    sigBlob=await new Promise(r=>cnv.toBlob(r,'image/png'));
+    closeM();pAction='signApply';fPdf.accept='.pdf';fPdf.click();
+  };
+}
+
+/* ── Hidden input handlers ── */
+fPdf.addEventListener('change',e=>{
+  const files=Array.from(e.target.files);
+  if(pAction==='merge'){pFiles=pFiles.concat(files);renderMerge();}
+  else if(pAction==='watermarkApply'){const f=files[0];if(f)doWatermark(f);}
+  else if(pAction==='protectApply'){const f=files[0];if(f)doProtect(f);}
+  else if(pAction==='signApply'){const f=files[0];if(f&&sigBlob)doSign(f);}
+  else if(pAction==='pdfWord'){const f=files[0];if(f)doPdfWord(f);}
+  else if(['split','rotate','compress','pinfo'].includes(pAction)){
+    pFiles=files.slice(0,1);
+    if(pAction==='split')renderSplit();
+    else if(pAction==='rotate')renderRotate();
+    else if(pAction==='compress'){const f=pFiles[0];closeM();doCompress(f);}
+    else if(pAction==='pinfo'){const f=pFiles[0];closeM();doInfo(f);}
+  }
+  fPdf.value='';
+});
+fImg.addEventListener('change',e=>{
+  const files=Array.from(e.target.files);
+  if(pAction==='ocr'){const f=files[0];if(f){closeM();runOcr(f,false);}}
+  else if(pAction==='ocrExcel'){const f=files[0];if(f){closeM();runOcr(f,true);}}
+  else{pImgs=pImgs.concat(files);renderImgList();}
+  fImg.value='';
+});
+
+/* ── Modals ── */
+function renderMerge(){
+  let h=pFiles.map((f,i)=>`<div class="fitem"><span>${esc(f.name)}</span><span class="rm" data-i="${i}">✕</span></div>`).join('')||'<p style="color:var(--text2);font-size:12px">No files selected</p>';
+  openM(`<h3>🔗 Merge PDFs</h3><div class="flist">${h}</div><div class="acts"><button class="btn-s" id="mAdd">Add File</button><button class="btn-p" id="mGo">Merge Now</button></div><div class="acts" style="margin-top:6px"><button class="btn-s btn-wide" id="mX">Cancel</button></div>`);
+  $('mAdd').onclick=()=>{fPdf.click();};$('mX').onclick=closeM;
+  $('mGo').onclick=()=>{if(pFiles.length<2){setSt('❌ Need at least 2 PDFs','err');return;}const f=pFiles.slice();closeM();doMerge(f);};
+  mc.querySelectorAll('.rm').forEach(x=>{x.onclick=()=>{pFiles.splice(+x.dataset.i,1);renderMerge();};});
+}
+function renderSplit(){
+  openM(`<h3>✂️ Split PDF</h3><p class="sub">Enter page ranges — e.g. <b>1-3</b>, <b>1,3,5</b> — or leave blank to extract all pages.</p><input type="text" id="spR" placeholder="e.g. 1-3, 5, 7-9" autofocus><div class="acts"><button class="btn-s" id="spX">Cancel</button><button class="btn-p" id="spGo">Split</button></div>`);
+  $('spX').onclick=closeM;
+  $('spGo').onclick=()=>{const r=$('spR').value;const f=pFiles[0];closeM();doSplit(f,r);};
+}
+function renderRotate(){
+  openM(`<h3>🔄 Rotate PDF</h3><select id="rtD"><option value="90">90° Clockwise</option><option value="180">180° Upside-down</option><option value="270">90° Counter-clockwise</option></select><div class="acts"><button class="btn-s" id="rtX">Cancel</button><button class="btn-p" id="rtGo">Rotate</button></div>`);
+  $('rtX').onclick=closeM;
+  $('rtGo').onclick=()=>{const d=parseInt($('rtD').value);const f=pFiles[0];closeM();doRotate(f,d);};
+}
+
+/* ── Tool router ── */
+document.querySelectorAll('.tool').forEach(t=>{
+  t.addEventListener('click',()=>{
+    const a=t.dataset.a;pAction=a;pFiles=[];pImgs=[];
+    switch(a){
+      case 'scan':launchScan('document');break;
+      case 'idcard':launchId();break;
+      case 'book':launchScan('book');break;
+      case 'batch':launchScan('batch');break;
+      case 'ocr':launchOcr(false);break;
+      case 'ocrExcel':launchOcr(true);break;
+      case 'imgPdf':launchImgPdf();break;
+      case 'pdfWord':
+        openM(`<h3>📝 PDF → Word</h3><p class="sub">Extracts text from a PDF and saves it as a .docx that opens in Word, Google Docs, or Pages.</p><div class="acts"><button class="btn-s" id="pwX">Cancel</button><button class="btn-p" id="pwGo">Select PDF</button></div>`);
+        $('pwX').onclick=closeM;$('pwGo').onclick=()=>{closeM();fPdf.accept='.pdf';fPdf.click();};break;
+      case 'merge':pFiles=[];renderMerge();break;
+      case 'split':case 'rotate':case 'compress':case 'pinfo':
+        setSt('Select a PDF file…','load');fPdf.accept='.pdf';fPdf.click();break;
+      case 'watermark':
+        openM(`<h3>💧 Add Watermark</h3><p class="sub">Enter watermark text to overlay diagonally on every page.</p><input type="text" id="wT" placeholder="e.g. CONFIDENTIAL" value="CONFIDENTIAL"><select id="wO"><option value="0.1">Light (10%)</option><option value="0.2" selected>Medium (20%)</option><option value="0.4">Strong (40%)</option></select><div class="acts"><button class="btn-s" id="wX">Cancel</button><button class="btn-p" id="wGo">Select PDF</button></div>`);
+        $('wX').onclick=closeM;
+        $('wGo').onclick=()=>{wmText=$('wT').value||'CONFIDENTIAL';wmOpacity=parseFloat($('wO').value);closeM();pAction='watermarkApply';fPdf.accept='.pdf';fPdf.click();};break;
+      case 'protect':
+        openM(`<h3>🔐 Password Protect PDF</h3><p class="sub">Set a password to encrypt your PDF. It will be required to open the file.</p><input type="password" id="p1" placeholder="Enter password"><input type="password" id="p2" placeholder="Confirm password"><div class="acts"><button class="btn-s" id="pX">Cancel</button><button class="btn-p" id="pGo">Select PDF</button></div>`);
+        $('pX').onclick=closeM;
+        $('pGo').onclick=()=>{const a=$('p1').value,b=$('p2').value;if(!a||a!==b){setSt('❌ Passwords do not match','err');return;}pdfPwd=a;closeM();pAction='protectApply';fPdf.accept='.pdf';fPdf.click();};break;
+      case 'sign':launchSig();break;
+      case 'collage':launchCollage();break;
+      case 'timestamp':launchTimestamp();break;
+      case 'qr':launchQr();break;
+      case 'share':launchShare();break;
+    }
+  });
+});
+
+/* ── Overlay dismiss ── */
+ov.addEventListener('click',e=>{if(e.target===ov)closeM();});
+
+/* ── Init status ── */
+setSt('Ready — 20 tools loaded · Tap any card to begin','');
+})();
+</script>
+</body>
+</html>
