@@ -3,334 +3,791 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<meta name="theme-color" content="#0a0a14">
-<title>Ledger — Simple Business Manager</title>
+<meta name="theme-color" content="#08090f">
+<title>Aurora — Business Suite</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf@2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable@3.8.2/jspdf.plugin.autotable.min.js"></script>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-:root{
---bg:#0a0a14;--panel:#11111c;--panel2:#17172a;--line:#232338;
---text:#eeeef7;--dim:#8b8ba8;--faint:#4a4a68;
---blue:#4f7cff;--green:#22c55e;--red:#ef4444;--amber:#f59e0b;
---cyan:#06b6d4;--purple:#a855f7;
---r:10px;--rs:7px;
+/* ═══════════════════════════════════════════════
+   AURORA — Design System
+   ═══════════════════════════════════════════════ */
+:root {
+  --bg-0: #08090f;
+  --bg-1: #0d0f18;
+  --bg-2: #131623;
+  --bg-3: #1c2030;
+  --line: rgba(255,255,255,.06);
+  --line-2: rgba(255,255,255,.1);
+  --text: #eef0f8;
+  --text-2: #9ba0b8;
+  --text-3: #5c6180;
+  --violet: #7c5cff;
+  --violet-2: #9b7fff;
+  --violet-glow: rgba(124,92,255,.4);
+  --emerald: #10d97a;
+  --rose: #ff4f6e;
+  --amber: #ffb547;
+  --cyan: #22d3ee;
+  --pink: #f472b6;
+  --r-sm: 8px;
+  --r: 14px;
+  --r-lg: 20px;
+  --shadow-lg: 0 20px 60px -20px rgba(0,0,0,.8);
+  --transition: cubic-bezier(.4,.2,.2,1);
 }
-html{font-size:16px}
-body{
-font:14px/1.5 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent }
+html { font-size:16px; -webkit-font-smoothing:antialiased }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg-0);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
 }
-.app{display:flex;min-height:100vh}
-
-/* SIDEBAR */
-.sidebar{
-width:230px;background:var(--panel);border-right:1px solid var(--line);
-padding:18px 0;position:fixed;top:0;bottom:0;left:0;overflow-y:auto;z-index:50;
-transition:transform .25s;
-}
-.sidebar.hidden{transform:translateX(-100%)}
-.brand{padding:0 20px 18px;border-bottom:1px solid var(--line);margin-bottom:14px}
-.brand h1{font-size:17px;font-weight:700;color:#fff;letter-spacing:-.3px}
-.brand p{font-size:11px;color:var(--dim);margin-top:2px}
-.nav-item{
-display:flex;align-items:center;gap:10px;padding:10px 20px;font-size:13px;
-color:var(--dim);cursor:pointer;border-left:3px solid transparent;transition:.15s;
-}
-.nav-item:hover{background:var(--panel2);color:var(--text)}
-.nav-item.active{background:rgba(79,124,255,.08);color:var(--blue);border-left-color:var(--blue)}
-.nav-item .ico{font-size:15px;width:20px;text-align:center}
-.nav-sec{padding:14px 20px 6px;font-size:10px;font-weight:700;color:var(--faint);letter-spacing:1px;text-transform:uppercase}
-
-/* MAIN */
-.main{flex:1;margin-left:230px;min-width:0;display:flex;flex-direction:column}
-.topbar{
-height:56px;background:var(--panel);border-bottom:1px solid var(--line);
-display:flex;align-items:center;gap:14px;padding:0 20px;position:sticky;top:0;z-index:40;
-}
-.menu-btn{
-display:none;background:none;border:none;color:var(--text);font-size:20px;cursor:pointer;
-}
-.topbar h2{font-size:15px;font-weight:600;flex:1}
-.topbar .act{
-padding:7px 14px;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);
-font-size:12px;font-weight:600;cursor:pointer;transition:.15s;
-}
-.topbar .act:hover{background:#3d6ae8}
-.topbar .ghost{
-padding:7px 12px;background:transparent;color:var(--dim);border:1px solid var(--line);
-border-radius:var(--rs);font-size:12px;cursor:pointer;font-weight:600;
-}
-.topbar .ghost:hover{color:var(--text);border-color:var(--dim)}
-.content{padding:22px;flex:1}
-
-/* CARDS */
-.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:18px;margin-bottom:16px}
-.card h3{font-size:13px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px}
-.card h3 .hint{font-weight:400;font-size:11px;color:var(--dim);margin-left:auto}
-
-/* KPI */
-.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:18px}
-.kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px}
-.kpi .lab{font-size:11px;color:var(--dim);font-weight:600;letter-spacing:.3px;text-transform:uppercase}
-.kpi .val{font-size:22px;font-weight:700;margin-top:6px;letter-spacing:-.5px}
-.kpi .sub{font-size:11px;color:var(--faint);margin-top:4px}
-.kpi.g .val{color:var(--green)}.kpi.r .val{color:var(--red)}.kpi.a .val{color:var(--amber)}
-.kpi.b .val{color:var(--blue)}.kpi.c .val{color:var(--cyan)}.kpi.p .val{color:var(--purple)}
-
-/* TABLES */
-.tbl-wrap{overflow-x:auto;margin:0 -4px}
-table.tbl{width:100%;border-collapse:collapse;font-size:13px;min-width:500px}
-.tbl th{
-text-align:left;padding:10px 10px;font-size:10px;font-weight:700;color:var(--faint);
-letter-spacing:.8px;text-transform:uppercase;border-bottom:1px solid var(--line);
-}
-.tbl td{padding:11px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
-.tbl tr:last-child td{border-bottom:none}
-.tbl tr:hover td{background:rgba(255,255,255,.02)}
-.tbl .num{text-align:right;font-variant-numeric:tabular-nums}
-.tbl .name{font-weight:600;color:var(--text)}
-.tbl .sm{font-size:11px;color:var(--dim)}
-.row-act{display:flex;gap:4px;justify-content:flex-end}
-.icon-btn{
-background:none;border:none;padding:4px 6px;color:var(--dim);cursor:pointer;
-font-size:13px;border-radius:var(--rs);transition:.15s;
-}
-.icon-btn:hover{background:var(--panel2);color:var(--text)}
-
-/* BADGES */
-.badge{
-display:inline-block;padding:3px 8px;border-radius:5px;font-size:10px;font-weight:700;
-letter-spacing:.3px;text-transform:uppercase;
-}
-.badge.g{background:rgba(34,197,94,.15);color:var(--green)}
-.badge.r{background:rgba(239,68,68,.15);color:var(--red)}
-.badge.a{background:rgba(245,158,11,.15);color:var(--amber)}
-.badge.b{background:rgba(79,124,255,.15);color:var(--blue)}
-.badge.n{background:rgba(139,139,168,.12);color:var(--dim)}
-
-/* FORM */
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.form-grid.one{grid-template-columns:1fr}
-.form-grid.three{grid-template-columns:1fr 1fr 1fr}
-.field{display:flex;flex-direction:column;gap:5px}
-.field label{font-size:11px;font-weight:600;color:var(--dim);letter-spacing:.3px}
-.field input,.field select,.field textarea{
-padding:9px 11px;background:var(--bg);border:1px solid var(--line);
-border-radius:var(--rs);color:var(--text);font-size:13px;font-family:inherit;outline:none;
-transition:.15s;width:100%;
-}
-.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--blue)}
-.field textarea{min-height:70px;resize:vertical}
-.field .req{color:var(--red)}
-
-/* BUTTONS */
-.btn{
-padding:9px 16px;border:none;border-radius:var(--rs);font-size:13px;font-weight:600;
-cursor:pointer;font-family:inherit;transition:.15s;
-}
-.btn.primary{background:var(--blue);color:#fff}
-.btn.primary:hover{background:#3d6ae8}
-.btn.success{background:var(--green);color:#fff}
-.btn.danger{background:var(--red);color:#fff}
-.btn.ghost{background:var(--panel2);color:var(--text);border:1px solid var(--line)}
-.btn.ghost:hover{background:var(--line)}
-.btn.tiny{padding:5px 10px;font-size:11px}
-.btn-row{display:flex;gap:8px;margin-top:16px;justify-content:flex-end}
-
-/* MODAL */
-.modal-bg{
-position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;
-display:none;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;
-}
-.modal-bg.on{display:flex}
-.modal{
-background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
-width:100%;max-width:640px;margin:auto;
-}
-.modal-head{
-padding:16px 20px;border-bottom:1px solid var(--line);
-display:flex;align-items:center;justify-content:space-between;
-}
-.modal-head h3{font-size:14px;font-weight:700}
-.modal-close{background:none;border:none;color:var(--dim);font-size:20px;cursor:pointer;line-height:1}
-.modal-body{padding:20px}
-.modal-foot{
-padding:14px 20px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end;
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 40% at 20% -10%, rgba(124,92,255,.18), transparent 60%),
+    radial-gradient(ellipse 50% 40% at 90% 10%, rgba(34,211,238,.08), transparent 60%),
+    radial-gradient(ellipse 40% 30% at 50% 100%, rgba(244,114,182,.06), transparent 70%);
+  pointer-events: none;
+  z-index: 0;
 }
 
-/* TOAST */
-.toast{
-position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);
-background:var(--panel2);border:1px solid var(--line);color:var(--text);
-padding:11px 20px;border-radius:var(--rs);font-size:13px;font-weight:600;
-z-index:200;transition:transform .3s;pointer-events:none;
+/* ─── LAYOUT ─────────────────────────────── */
+.shell {
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  min-height: 100vh;
+  position: relative;
+  z-index: 1;
 }
-.toast.on{transform:translateX(-50%) translateY(0)}
 
-/* EMPTY */
-.empty{text-align:center;padding:40px 20px;color:var(--faint);font-size:13px}
-.empty .big{font-size:36px;display:block;margin-bottom:10px}
-
-/* SEARCH */
-.search{
-padding:8px 12px;background:var(--bg);border:1px solid var(--line);
-border-radius:var(--rs);color:var(--text);font-size:13px;width:200px;outline:none;
+/* ─── SIDEBAR ────────────────────────────── */
+.side {
+  background: rgba(13,15,24,.8);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-right: 1px solid var(--line);
+  padding: 22px 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
-.search:focus{border-color:var(--blue)}
+.side::-webkit-scrollbar { width: 0 }
 
-/* CHART */
-.chart-box{position:relative;height:220px}
-
-/* THERMAL */
-.thermal{
-background:#fff;color:#000;padding:12px;font-family:'Courier New',monospace;
-font-size:11px;line-height:1.5;max-width:300px;margin:0 auto;
+.brand {
+  padding: 0 22px 22px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 16px;
 }
-.thermal .c{text-align:center}
-.thermal hr{border:none;border-top:1px dashed #666;margin:5px 0}
-.thermal table{width:100%;font-size:10px}
-.thermal table td{padding:1px 0}
-.thermal .total{font-weight:700;font-size:12px}
-
-/* MOBILE */
-@media(max-width:768px){
-.sidebar{transform:translateX(-100%)}
-.sidebar.open{transform:translateX(0)}
-.main{margin-left:0}
-.menu-btn{display:block}
-.topbar h2{font-size:13px}
-.content{padding:14px}
-.form-grid,.form-grid.three{grid-template-columns:1fr}
-.kpi .val{font-size:18px}
-.card{padding:14px}
+.brand-mark {
+  width: 34px; height: 34px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--violet), var(--pink));
+  display: grid; place-items: center;
+  font-size: 17px;
+  box-shadow: 0 8px 24px -8px var(--violet-glow);
+  flex-shrink: 0;
 }
+.brand-text h1 {
+  font-size: 15px; font-weight: 700; letter-spacing: -.3px;
+  background: linear-gradient(135deg, #fff, #9ba0b8);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.brand-text p { font-size: 10px; color: var(--text-3); letter-spacing: .5px; text-transform: uppercase; margin-top: 1px }
+
+.nav-label {
+  padding: 12px 22px 6px;
+  font-size: 10px; font-weight: 700; color: var(--text-3);
+  letter-spacing: 1.2px; text-transform: uppercase;
+}
+.nav-link {
+  display: flex; align-items: center; gap: 12px;
+  padding: 9px 22px;
+  font-size: 13px; font-weight: 500;
+  color: var(--text-2);
+  cursor: pointer;
+  transition: all .18s var(--transition);
+  position: relative;
+  border: none; background: none;
+  width: 100%; text-align: left;
+  font-family: inherit;
+}
+.nav-link::before {
+  content: '';
+  position: absolute; left: 0; top: 50%;
+  transform: translateY(-50%) scaleY(0);
+  width: 3px; height: 20px;
+  background: linear-gradient(180deg, var(--violet), var(--pink));
+  border-radius: 0 3px 3px 0;
+  transition: transform .2s var(--transition);
+}
+.nav-link:hover { color: var(--text); background: rgba(255,255,255,.03) }
+.nav-link.on {
+  color: var(--text);
+  background: linear-gradient(90deg, rgba(124,92,255,.12), transparent 80%);
+}
+.nav-link.on::before { transform: translateY(-50%) scaleY(1) }
+.nav-link .ic {
+  font-size: 15px; width: 18px;
+  display: inline-flex; justify-content: center;
+  opacity: .8;
+}
+.nav-link.on .ic { opacity: 1 }
+
+.side-foot {
+  margin-top: auto;
+  padding: 14px 22px 0;
+  border-top: 1px solid var(--line);
+  font-size: 10px;
+  color: var(--text-3);
+  letter-spacing: .3px;
+}
+
+/* ─── MAIN ───────────────────────────────── */
+.main { min-width: 0; display: flex; flex-direction: column }
+
+.top {
+  display: flex; align-items: center; gap: 14px;
+  padding: 18px 28px;
+  border-bottom: 1px solid var(--line);
+  background: rgba(13,15,24,.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  position: sticky; top: 0; z-index: 20;
+}
+.menu {
+  display: none;
+  width: 34px; height: 34px;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  color: var(--text);
+  font-size: 15px;
+  cursor: pointer;
+  align-items: center; justify-content: center;
+}
+.crumb { flex: 1; min-width: 0 }
+.crumb h2 {
+  font-size: 17px; font-weight: 700;
+  letter-spacing: -.4px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.crumb p {
+  font-size: 11px; color: var(--text-3); margin-top: 1px;
+  letter-spacing: .2px;
+}
+
+.cta {
+  padding: 9px 16px;
+  background: linear-gradient(135deg, var(--violet), #6a4aff);
+  color: #fff;
+  border: none;
+  border-radius: var(--r-sm);
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all .2s var(--transition);
+  box-shadow: 0 8px 20px -6px var(--violet-glow);
+  letter-spacing: .2px;
+}
+.cta:hover { transform: translateY(-1px); box-shadow: 0 12px 26px -8px var(--violet-glow) }
+.cta:active { transform: translateY(0) }
+
+.icon-btn {
+  width: 34px; height: 34px;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  color: var(--text-2);
+  cursor: pointer;
+  font-size: 14px;
+  transition: all .18s var(--transition);
+  display: grid; place-items: center;
+}
+.icon-btn:hover { background: var(--bg-3); color: var(--text); border-color: var(--line-2) }
+
+.stage { padding: 24px 28px 40px; flex: 1 }
+
+/* ─── CARDS ──────────────────────────────── */
+.grid {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.kpi-grid { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) }
+.kpi {
+  background: linear-gradient(180deg, rgba(28,32,48,.6), rgba(19,22,35,.6));
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  padding: 16px 18px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color .2s var(--transition);
+}
+.kpi:hover { border-color: var(--line-2) }
+.kpi::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(124,92,255,.5), transparent);
+  opacity: 0;
+  transition: opacity .3s;
+}
+.kpi:hover::before { opacity: 1 }
+.kpi-label {
+  font-size: 10px; font-weight: 700;
+  color: var(--text-3); letter-spacing: 1px;
+  text-transform: uppercase;
+  display: flex; align-items: center; gap: 6px;
+}
+.kpi-label .dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  display: inline-block;
+}
+.kpi-value {
+  font-size: 22px; font-weight: 700;
+  margin-top: 8px;
+  letter-spacing: -.6px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+.kpi-note {
+  font-size: 11px; color: var(--text-3); margin-top: 4px;
+}
+.dot-violet { background: var(--violet); box-shadow: 0 0 8px var(--violet-glow) }
+.dot-emerald { background: var(--emerald); box-shadow: 0 0 8px rgba(16,217,122,.5) }
+.dot-rose { background: var(--rose); box-shadow: 0 0 8px rgba(255,79,110,.5) }
+.dot-amber { background: var(--amber); box-shadow: 0 0 8px rgba(255,181,71,.5) }
+.dot-cyan { background: var(--cyan); box-shadow: 0 0 8px rgba(34,211,238,.5) }
+.dot-pink { background: var(--pink); box-shadow: 0 0 8px rgba(244,114,182,.5) }
+
+.violet { color: var(--violet-2) }
+.emerald { color: var(--emerald) }
+.rose { color: var(--rose) }
+.amber { color: var(--amber) }
+.cyan { color: var(--cyan) }
+.pink { color: var(--pink) }
+
+.panel {
+  background: rgba(19,22,35,.55);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  padding: 20px 22px;
+  margin-bottom: 16px;
+}
+.panel-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px;
+  gap: 12px;
+}
+.panel-head h3 {
+  font-size: 14px; font-weight: 700;
+  letter-spacing: -.2px;
+  display: flex; align-items: center; gap: 8px;
+}
+.panel-head .sub {
+  font-size: 11px; color: var(--text-3);
+  font-weight: 500; letter-spacing: .2px;
+}
+.panel-actions { display: flex; gap: 8px }
+
+/* ─── TABLES ─────────────────────────────── */
+.tbl-scroll {
+  overflow-x: auto;
+  margin: 0 -22px;
+  padding: 0 22px;
+}
+.tbl-scroll::-webkit-scrollbar { height: 6px }
+.tbl-scroll::-webkit-scrollbar-thumb { background: var(--bg-3); border-radius: 3px }
+
+table.data {
+  width: 100%; border-collapse: collapse;
+  font-size: 13px; min-width: 520px;
+}
+table.data th {
+  text-align: left; padding: 11px 12px;
+  font-size: 10px; font-weight: 700;
+  color: var(--text-3);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+table.data td {
+  padding: 13px 12px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+}
+table.data tbody tr {
+  transition: background .15s var(--transition);
+}
+table.data tbody tr:hover { background: rgba(255,255,255,.02) }
+table.data tbody tr:last-child td { border-bottom: none }
+table.data .num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 500 }
+table.data .name { font-weight: 600; color: var(--text) }
+table.data .sm { font-size: 11px; color: var(--text-3); margin-top: 2px; font-weight: 400 }
+.row-btns { display: flex; gap: 4px; justify-content: flex-end }
+.row-btn {
+  width: 28px; height: 28px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: var(--text-3);
+  cursor: pointer;
+  font-size: 12px;
+  transition: all .15s var(--transition);
+  display: grid; place-items: center;
+}
+.row-btn:hover {
+  background: var(--bg-2); color: var(--text); border-color: var(--line-2);
+}
+.row-btn.danger:hover { color: var(--rose); border-color: rgba(255,79,110,.3) }
+
+/* ─── PILLS ──────────────────────────────── */
+.pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+}
+.pill::before {
+  content: '';
+  width: 5px; height: 5px;
+  border-radius: 50%;
+}
+.pill.ok { background: rgba(16,217,122,.12); color: var(--emerald) }
+.pill.ok::before { background: var(--emerald); box-shadow: 0 0 6px var(--emerald) }
+.pill.warn { background: rgba(255,181,71,.12); color: var(--amber) }
+.pill.warn::before { background: var(--amber); box-shadow: 0 0 6px var(--amber) }
+.pill.err { background: rgba(255,79,110,.12); color: var(--rose) }
+.pill.err::before { background: var(--rose); box-shadow: 0 0 6px var(--rose) }
+.pill.info { background: rgba(124,92,255,.12); color: var(--violet-2) }
+.pill.info::before { background: var(--violet); box-shadow: 0 0 6px var(--violet) }
+.pill.none { background: rgba(155,160,184,.1); color: var(--text-3) }
+.pill.none::before { background: var(--text-3) }
+
+/* ─── EMPTY ──────────────────────────────── */
+.empty {
+  text-align: center;
+  padding: 50px 20px;
+  color: var(--text-3);
+  font-size: 13px;
+}
+.empty-icon {
+  width: 56px; height: 56px;
+  margin: 0 auto 14px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(124,92,255,.15), rgba(244,114,182,.1));
+  border: 1px solid var(--line-2);
+  display: grid; place-items: center;
+  font-size: 24px;
+  opacity: .8;
+}
+.empty-title { font-size: 14px; font-weight: 600; color: var(--text-2); margin-bottom: 4px }
+.empty-note { font-size: 12px; max-width: 300px; margin: 0 auto; line-height: 1.6 }
+
+/* ─── FORMS ──────────────────────────────── */
+.field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px }
+.field label {
+  font-size: 11px; font-weight: 600;
+  color: var(--text-2);
+  letter-spacing: .3px;
+}
+.field label .req { color: var(--rose) }
+.field input, .field select, .field textarea {
+  width: 100%;
+  padding: 10px 13px;
+  background: rgba(8,9,15,.6);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  color: var(--text);
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  transition: all .18s var(--transition);
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  border-color: var(--violet);
+  box-shadow: 0 0 0 3px var(--violet-glow);
+}
+.field textarea { min-height: 74px; resize: vertical }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px }
+.field-row.three { grid-template-columns: 1fr 1fr 1fr }
+
+/* ─── BUTTONS ────────────────────────────── */
+.btn {
+  padding: 10px 18px;
+  border: none;
+  border-radius: var(--r-sm);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all .18s var(--transition);
+  letter-spacing: .2px;
+}
+.btn-primary {
+  background: linear-gradient(135deg, var(--violet), #6a4aff);
+  color: #fff;
+  box-shadow: 0 8px 20px -6px var(--violet-glow);
+}
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 12px 26px -8px var(--violet-glow) }
+.btn-success { background: linear-gradient(135deg, var(--emerald), #0bb566); color: #fff; box-shadow: 0 8px 20px -6px rgba(16,217,122,.4) }
+.btn-ghost {
+  background: rgba(255,255,255,.04);
+  color: var(--text-2);
+  border: 1px solid var(--line);
+}
+.btn-ghost:hover { background: rgba(255,255,255,.08); color: var(--text); border-color: var(--line-2) }
+.btn-danger { background: rgba(255,79,110,.1); color: var(--rose); border: 1px solid rgba(255,79,110,.2) }
+.btn-danger:hover { background: rgba(255,79,110,.15) }
+.btn-sm { padding: 7px 12px; font-size: 12px }
+.btn-row { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; flex-wrap: wrap }
+
+/* ─── MODAL ──────────────────────────────── */
+.modal-bg {
+  position: fixed; inset: 0; z-index: 100;
+  background: rgba(4,5,10,.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: none;
+  align-items: flex-start; justify-content: center;
+  padding: 24px;
+  overflow-y: auto;
+}
+.modal-bg.on { display: flex; animation: fadeIn .2s var(--transition) }
+@keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+
+.modal {
+  background: linear-gradient(180deg, rgba(28,32,48,.98), rgba(19,22,35,.98));
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-lg);
+  width: 100%; max-width: 620px;
+  box-shadow: var(--shadow-lg);
+  margin: auto;
+  animation: slideUp .28s var(--transition);
+  overflow: hidden;
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px) scale(.98) }
+  to { opacity: 1; transform: none }
+}
+.modal-head {
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--line);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.modal-head h3 { font-size: 15px; font-weight: 700; letter-spacing: -.3px }
+.modal-head .x {
+  width: 30px; height: 30px;
+  background: transparent; border: none;
+  color: var(--text-3); font-size: 20px;
+  cursor: pointer; border-radius: 6px;
+  transition: all .15s;
+  line-height: 1;
+}
+.modal-head .x:hover { background: var(--bg-2); color: var(--text) }
+.modal-body { padding: 22px }
+.modal-foot {
+  padding: 16px 22px;
+  border-top: 1px solid var(--line);
+  display: flex; gap: 8px; justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+/* ─── TOAST ──────────────────────────────── */
+.toast {
+  position: fixed;
+  bottom: 24px; left: 50%;
+  transform: translate(-50%, 80px);
+  background: linear-gradient(135deg, rgba(28,32,48,.98), rgba(19,22,35,.98));
+  border: 1px solid var(--line-2);
+  color: var(--text);
+  padding: 12px 22px;
+  border-radius: 30px;
+  font-size: 13px; font-weight: 600;
+  z-index: 200;
+  transition: transform .3s var(--transition);
+  box-shadow: var(--shadow-lg);
+  pointer-events: none;
+  max-width: 90vw;
+}
+.toast.on { transform: translate(-50%, 0) }
+.toast.err { border-color: rgba(255,79,110,.3); color: var(--rose) }
+.toast.ok { border-color: rgba(16,217,122,.3); color: var(--emerald) }
+
+/* ─── CHART ──────────────────────────────── */
+.chart-wrap { position: relative; height: 240px; margin: 6px 0 }
+
+/* ─── LINE ITEMS ─────────────────────────── */
+.line-items { display: flex; flex-direction: column; gap: 6px }
+.line {
+  display: grid;
+  grid-template-columns: 2fr 60px 90px 65px 30px;
+  gap: 6px;
+  align-items: center;
+}
+.line input, .line select {
+  padding: 8px 10px;
+  background: rgba(8,9,15,.6);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 12px;
+  font-family: inherit;
+  outline: none;
+  width: 100%;
+  transition: border-color .15s;
+}
+.line input:focus, .line select:focus { border-color: var(--violet) }
+.line .rm {
+  width: 30px; height: 30px;
+  background: transparent; border: none;
+  color: var(--text-3); cursor: pointer;
+  border-radius: 6px;
+  font-size: 13px;
+  transition: all .15s;
+}
+.line .rm:hover { background: rgba(255,79,110,.1); color: var(--rose) }
+
+.totals {
+  margin-top: 16px;
+  padding: 16px 18px;
+  background: rgba(8,9,15,.5);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  font-size: 13px;
+}
+.totals-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 5px 0;
+  color: var(--text-2);
+}
+.totals-row b { color: var(--text); font-variant-numeric: tabular-nums }
+.totals-grand {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 0 0;
+  margin-top: 8px;
+  border-top: 1px solid var(--line-2);
+  font-size: 17px; font-weight: 700;
+  letter-spacing: -.3px;
+}
+
+/* ─── THERMAL ────────────────────────────── */
+.thermal {
+  background: #fff; color: #000;
+  padding: 14px 16px;
+  font-family: 'Courier New', ui-monospace, monospace;
+  font-size: 11px;
+  line-height: 1.5;
+  max-width: 300px;
+  margin: 0 auto;
+  border-radius: 4px;
+}
+.thermal .center { text-align: center }
+.thermal .biz { font-size: 13px; font-weight: 700 }
+.thermal hr { border: none; border-top: 1px dashed #999; margin: 6px 0 }
+.thermal table { width: 100%; font-size: 10px; border-collapse: collapse }
+.thermal table td { padding: 1px 0; vertical-align: top }
+.thermal .grand { font-size: 13px; font-weight: 700; padding-top: 4px; border-top: 1px solid #000 }
+
+/* ─── RESPONSIVE ─────────────────────────── */
+@media (max-width: 900px) {
+  .shell { grid-template-columns: 1fr }
+  .side {
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    width: 260px;
+    z-index: 60;
+    transform: translateX(-100%);
+    transition: transform .3s var(--transition);
+  }
+  .side.on { transform: translateX(0) }
+  .menu { display: flex }
+  .stage { padding: 18px 16px 40px }
+  .top { padding: 14px 16px }
+  .crumb h2 { font-size: 15px }
+  .field-row, .field-row.three { grid-template-columns: 1fr }
+  .modal { max-width: 100% }
+  .modal-bg { padding: 12px }
+  .panel { padding: 16px }
+  .tbl-scroll { margin: 0 -16px; padding: 0 16px }
+  .line { grid-template-columns: 2fr 50px 70px 55px 28px; gap: 4px }
+  .line input, .line select { padding: 7px 8px; font-size: 11px }
+}
+
+.overlay {
+  position: fixed; inset: 0;
+  background: rgba(4,5,10,.5);
+  z-index: 55;
+  opacity: 0; pointer-events: none;
+  transition: opacity .3s;
+}
+.overlay.on { opacity: 1; pointer-events: auto }
 </style>
 </head>
 <body>
-<div class="app">
 
-<aside class="sidebar" id="sidebar">
-  <div class="brand">
-    <h1>📒 Ledger</h1>
-    <p>Simple business manager</p>
-  </div>
-  <div class="nav-sec">Main</div>
-  <div class="nav-item" data-route="dashboard"><span class="ico">▦</span>Dashboard</div>
-  <div class="nav-item" data-route="invoices"><span class="ico">▤</span>Invoices</div>
-  <div class="nav-item" data-route="estimates"><span class="ico">◆</span>Estimates</div>
-  <div class="nav-item" data-route="payments"><span class="ico">◎</span>Payments</div>
-  <div class="nav-item" data-route="expenses"><span class="ico">▽</span>Expenses</div>
-  <div class="nav-sec">Contacts</div>
-  <div class="nav-item" data-route="customers"><span class="ico">☺</span>Customers</div>
-  <div class="nav-item" data-route="vendors"><span class="ico">⚑</span>Vendors</div>
-  <div class="nav-sec">Inventory</div>
-  <div class="nav-item" data-route="items"><span class="ico">▣</span>Items</div>
-  <div class="nav-item" data-route="bills"><span class="ico">▥</span>Vendor Bills</div>
-  <div class="nav-sec">Insights</div>
-  <div class="nav-item" data-route="reports"><span class="ico">▲</span>Reports</div>
-  <div class="nav-item" data-route="settings"><span class="ico">⚙</span>Settings</div>
-</aside>
+<div class="shell">
+  <aside class="side" id="side">
+    <div class="brand">
+      <div class="brand-mark">◆</div>
+      <div class="brand-text">
+        <h1>Aurora</h1>
+        <p>Business Suite</p>
+      </div>
+    </div>
 
-<main class="main">
-  <header class="topbar">
-    <button class="menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
-    <h2 id="pageTitle">Dashboard</h2>
-    <div id="topActions"></div>
-  </header>
-  <div class="content" id="content"></div>
-</main>
+    <div class="nav-label">Overview</div>
+    <button class="nav-link" data-nav="dashboard"><span class="ic">◈</span>Dashboard</button>
 
+    <div class="nav-label">Money In</div>
+    <button class="nav-link" data-nav="invoices"><span class="ic">◧</span>Invoices</button>
+    <button class="nav-link" data-nav="estimates"><span class="ic">◇</span>Estimates</button>
+    <button class="nav-link" data-nav="payments"><span class="ic">◎</span>Payments</button>
+
+    <div class="nav-label">Money Out</div>
+    <button class="nav-link" data-nav="expenses"><span class="ic">▽</span>Expenses</button>
+    <button class="nav-link" data-nav="bills"><span class="ic">▥</span>Vendor Bills</button>
+
+    <div class="nav-label">Directory</div>
+    <button class="nav-link" data-nav="customers"><span class="ic">☺</span>Customers</button>
+    <button class="nav-link" data-nav="vendors"><span class="ic">⚑</span>Vendors</button>
+    <button class="nav-link" data-nav="items"><span class="ic">▣</span>Items</button>
+
+    <div class="nav-label">Insights</div>
+    <button class="nav-link" data-nav="reports"><span class="ic">▲</span>Reports</button>
+    <button class="nav-link" data-nav="settings"><span class="ic">⚙</span>Settings</button>
+
+    <div class="side-foot">Offline · Private · Free</div>
+  </aside>
+
+  <main class="main">
+    <header class="top">
+      <button class="menu" id="menuBtn">☰</button>
+      <div class="crumb">
+        <h2 id="pageTitle">Dashboard</h2>
+        <p id="pageSub">Overview of your business</p>
+      </div>
+      <div id="topActions"></div>
+    </header>
+    <div class="stage" id="stage"></div>
+  </main>
 </div>
+
+<div class="overlay" id="overlay"></div>
 
 <div class="modal-bg" id="modalBg" onclick="if(event.target===this)closeModal()">
   <div class="modal" id="modalBox"></div>
 </div>
+
 <div class="toast" id="toast"></div>
 
 <script>
-/* ══════════════════════════════════════════════
-   Ledger — Simple Business Manager
-   Everything runs in the browser. Data in IndexedDB.
-   ══════════════════════════════════════════════ */
-
-/* ── STATE ─────────────────────────────── */
-const S = {
-  customers: [], vendors: [], items: [],
-  invoices: [], estimates: [], payments: [],
-  expenses: [], bills: [],
-  settings: {
-    name: 'My Business', gstin: '', address: '', phone: '', email: '',
-    stateCode: '27', invPrefix: 'INV-', invCounter: 1,
-    estPrefix: 'EST-', estCounter: 1, currency: '₹'
+/* ═════════════════════════════════════════════════
+   AURORA — State
+   ═════════════════════════════════════════════════ */
+const STATE = {
+  customers: [],
+  vendors: [],
+  items: [],
+  invoices: [],
+  estimates: [],
+  expenses: [],
+  bills: [],
+  config: {
+    bizName: 'My Business',
+    gstin: '',
+    address: '',
+    phone: '',
+    email: '',
+    stateCode: '27',
+    currency: '₹',
+    invPrefix: 'INV-',
+    invCounter: 1,
+    estPrefix: 'EST-',
+    estCounter: 1
   }
 };
 
-/* ── PERSISTENCE ───────────────────────── */
-const DB_NAME = 'ledger_db';
+/* ─── Storage ─────────────────────────────── */
 let _db = null;
 
-function openDB() {
+function idb() {
   return new Promise((ok, err) => {
-    const req = indexedDB.open(DB_NAME, 1);
-    req.onupgradeneeded = e => {
-      const db = e.target.result;
-      if (!db.objectStoreNames.contains('state')) db.createObjectStore('state');
-    };
-    req.onsuccess = e => ok(e.target.result);
-    req.onerror = e => err(e.target.error);
+    const r = indexedDB.open('aurora_suite', 1);
+    r.onupgradeneeded = e => e.target.result.createObjectStore('s');
+    r.onsuccess = e => ok(e.target.result);
+    r.onerror = e => err(e.target.error);
   });
 }
 
-async function loadState() {
-  _db = await openDB();
-  return new Promise(ok => {
-    const tx = _db.transaction('state', 'readonly');
-    const req = tx.objectStore('state').get('data');
-    req.onsuccess = () => {
-      if (req.result) {
-        Object.assign(S, req.result);
-        S.settings = Object.assign({}, {
-          name: 'My Business', gstin: '', address: '', phone: '', email: '',
-          stateCode: '27', invPrefix: 'INV-', invCounter: 1,
-          estPrefix: 'EST-', estCounter: 1, currency: '₹'
-        }, req.result.settings || {});
-      }
-      ok();
-    };
-    req.onerror = () => ok();
-  });
+async function load() {
+  try {
+    _db = await idb();
+    return new Promise(ok => {
+      const t = _db.transaction('s', 'readonly');
+      const r = t.objectStore('s').get('main');
+      r.onsuccess = () => {
+        if (r.result) {
+          Object.assign(STATE, r.result);
+          STATE.config = { ...{
+            bizName: 'My Business', gstin: '', address: '', phone: '', email: '',
+            stateCode: '27', currency: '₹', invPrefix: 'INV-', invCounter: 1,
+            estPrefix: 'EST-', estCounter: 1
+          }, r.result.config || {} };
+        }
+        ok();
+      };
+      r.onerror = () => ok();
+    });
+  } catch { return; }
 }
 
-async function saveState() {
-  if (!_db) _db = await openDB();
-  return new Promise(ok => {
-    const tx = _db.transaction('state', 'readwrite');
-    tx.objectStore('state').put(JSON.parse(JSON.stringify(S)), 'data');
-    tx.oncomplete = () => ok();
-    tx.onerror = () => ok();
-  });
+async function save() {
+  try {
+    if (!_db) _db = await idb();
+    return new Promise(ok => {
+      const t = _db.transaction('s', 'readwrite');
+      t.objectStore('s').put(JSON.parse(JSON.stringify(STATE)), 'main');
+      t.oncomplete = () => ok();
+      t.onerror = () => ok();
+    });
+  } catch { return; }
 }
 
-/* ── HELPERS ───────────────────────────── */
+/* ─── Helpers ─────────────────────────────── */
 const $ = id => document.getElementById(id);
-const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
-const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 const today = () => new Date().toISOString().slice(0, 10);
 const nowStr = () => new Date().toLocaleString();
+const money = n => STATE.config.currency + (Number(n) || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-function money(n) {
-  const v = Number(n) || 0;
-  return S.settings.currency + v.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
-
-function toast(msg) {
+function toast(msg, kind) {
   const t = $('toast');
   t.textContent = msg;
-  t.classList.add('on');
-  clearTimeout(t._timer);
-  t._timer = setTimeout(() => t.classList.remove('on'), 2200);
+  t.className = 'toast on' + (kind ? ' ' + kind : '');
+  clearTimeout(t._tm);
+  t._tm = setTimeout(() => t.className = 'toast', 2400);
 }
 
 function openModal(html) {
@@ -343,409 +800,496 @@ function closeModal() {
 }
 window.closeModal = closeModal;
 
-/* ── GST CALC ──────────────────────────── */
-function calcInvoice(items, customerStateCode) {
+/* ─── GST Logic ───────────────────────────── */
+function computeTax(lines, customerState) {
+  const intra = !customerState || !STATE.config.stateCode || customerState === STATE.config.stateCode;
   let subtotal = 0, cgst = 0, sgst = 0, igst = 0;
-  items.forEach(it => {
-    const amount = (Number(it.qty) || 0) * (Number(it.rate) || 0);
+  lines.forEach(l => {
+    const amount = (Number(l.qty) || 0) * (Number(l.rate) || 0);
     subtotal += amount;
-    const tax = amount * (Number(it.gst) || 0) / 100;
-    const interState = customerStateCode && customerStateCode !== S.settings.stateCode;
-    if (interState) igst += tax;
-    else { cgst += tax / 2; sgst += tax / 2; }
+    const tax = amount * (Number(l.gst) || 0) / 100;
+    if (intra) { cgst += tax / 2; sgst += tax / 2; }
+    else igst += tax;
   });
-  const total = subtotal + cgst + sgst + igst;
-  return { subtotal, cgst, sgst, igst, total, taxTotal: cgst + sgst + igst };
+  return { subtotal, cgst, sgst, igst, taxTotal: cgst + sgst + igst, total: subtotal + cgst + sgst + igst };
 }
 
-/* ── INVOICE STATUS ────────────────────── */
-function invoiceStatus(inv) {
-  const paid = (inv.payments || []).reduce((s, p) => s + Number(p.amount || 0), 0);
+function paidAmount(inv) {
+  return (inv.payments || []).reduce((s, p) => s + Number(p.amount || 0), 0);
+}
+function balance(inv) {
+  return Math.max(0, inv.total - paidAmount(inv));
+}
+function invStatus(inv) {
+  const paid = paidAmount(inv);
   if (paid >= inv.total - 0.01) return 'paid';
   if (paid > 0) return 'partial';
   return 'pending';
 }
-function invoiceBalance(inv) {
-  const paid = (inv.payments || []).reduce((s, p) => s + Number(p.amount || 0), 0);
-  return Math.max(0, inv.total - paid);
+function pillFor(status) {
+  const map = { paid: 'ok', partial: 'warn', pending: 'err', converted: 'ok', open: 'info', unpaid: 'err', draft: 'none' };
+  return `<span class="pill ${map[status] || 'none'}">${status}</span>`;
 }
 
-/* ── ROUTER ────────────────────────────── */
-const ROUTES = {
-  dashboard: renderDashboard,
-  invoices: renderInvoices,
-  estimates: renderEstimates,
-  payments: renderPayments,
-  expenses: renderExpenses,
-  customers: renderCustomers,
-  vendors: renderVendors,
-  items: renderItems,
-  bills: renderBills,
-  reports: renderReports,
-  settings: renderSettings
+/* ═════════════════════════════════════════════════
+   NAVIGATION
+   ═════════════════════════════════════════════════ */
+const PAGES = {
+  dashboard: { title: 'Dashboard', sub: 'Overview of your business', render: renderDashboard },
+  invoices:  { title: 'Invoices', sub: 'Tax invoices and bills', render: renderInvoices },
+  estimates: { title: 'Estimates', sub: 'Quotations and proposals', render: renderEstimates },
+  payments:  { title: 'Payments', sub: 'Money received', render: renderPayments },
+  expenses:  { title: 'Expenses', sub: 'Business spending', render: renderExpenses },
+  bills:     { title: 'Vendor Bills', sub: 'Bills from suppliers', render: renderBills },
+  customers: { title: 'Customers', sub: 'Your client directory', render: renderCustomers },
+  vendors:   { title: 'Vendors', sub: 'Your supplier directory', render: renderVendors },
+  items:     { title: 'Items', sub: 'Products and services', render: renderItems },
+  reports:   { title: 'Reports', sub: 'P&L, aging, GST summaries', render: renderReports },
+  settings:  { title: 'Settings', sub: 'Configure your business', render: renderSettings }
 };
-let currentRoute = 'dashboard';
 
-function navigate(route) {
-  if (!ROUTES[route]) route = 'dashboard';
-  currentRoute = route;
-  document.querySelectorAll('.nav-item').forEach(n =>
-    n.classList.toggle('active', n.dataset.route === route));
-  $('sidebar').classList.remove('open');
-  const titles = {
-    dashboard: 'Dashboard', invoices: 'Invoices', estimates: 'Estimates',
-    payments: 'Payments', expenses: 'Expenses', customers: 'Customers',
-    vendors: 'Vendors', items: 'Items', bills: 'Vendor Bills',
-    reports: 'Reports', settings: 'Settings'
-  };
-  $('pageTitle').textContent = titles[route] || 'Dashboard';
-  ROUTES[route]();
+let currentPage = 'dashboard';
+
+function go(page) {
+  if (!PAGES[page]) page = 'dashboard';
+  currentPage = page;
+  document.querySelectorAll('.nav-link').forEach(n => n.classList.toggle('on', n.dataset.nav === page));
+  $('pageTitle').textContent = PAGES[page].title;
+  $('pageSub').textContent = PAGES[page].sub;
+  $('side').classList.remove('on');
+  $('overlay').classList.remove('on');
+  $('stage').innerHTML = '';
+  PAGES[page].render();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+window.go = go;
 
-document.querySelectorAll('.nav-item').forEach(n =>
-  n.addEventListener('click', () => navigate(n.dataset.route)));
+document.querySelectorAll('.nav-link').forEach(n => n.addEventListener('click', () => go(n.dataset.nav)));
+$('menuBtn').onclick = () => { $('side').classList.toggle('on'); $('overlay').classList.toggle('on'); };
+$('overlay').onclick = () => { $('side').classList.remove('on'); $('overlay').classList.remove('on'); };
 
-/* ══════════════════════════════════════════
+/* ═════════════════════════════════════════════════
    DASHBOARD
-   ══════════════════════════════════════════ */
+   ═════════════════════════════════════════════════ */
 let dashChart = null;
 
 function renderDashboard() {
-  const totalSales = S.invoices.reduce((s, i) => s + i.total, 0);
-  const totalPaid = S.invoices.reduce((s, i) => s + (i.payments || []).reduce((a, p) => a + Number(p.amount || 0), 0), 0);
+  $('topActions').innerHTML = `<button class="cta" onclick="newInvoice()">+ New Invoice</button>`;
+
+  const totalSales = STATE.invoices.reduce((s, i) => s + i.total, 0);
+  const totalPaid = STATE.invoices.reduce((s, i) => s + paidAmount(i), 0);
   const outstanding = totalSales - totalPaid;
-  const totalExpenses = S.expenses.reduce((s, e) => s + Number(e.amount || 0), 0);
-  const totalPurchases = S.bills.reduce((s, b) => s + b.total, 0);
-  const netProfit = totalSales - totalPurchases - totalExpenses;
-  const paidInvCount = S.invoices.filter(i => invoiceStatus(i) === 'paid').length;
-  const pendingCount = S.invoices.filter(i => invoiceStatus(i) !== 'paid').length;
+  const expenses = STATE.expenses.reduce((s, e) => s + Number(e.amount || 0), 0);
+  const purchases = STATE.bills.reduce((s, b) => s + b.total, 0);
+  const net = totalSales - purchases - expenses;
 
-  $('topActions').innerHTML = `<button class="act" onclick="newInvoice()">+ New Invoice</button>`;
-
-  $('content').innerHTML = `
-    <div class="kpis">
-      <div class="kpi g"><div class="lab">Total Sales</div><div class="val">${money(totalSales)}</div><div class="sub">${S.invoices.length} invoices</div></div>
-      <div class="kpi r"><div class="lab">Outstanding</div><div class="val">${money(outstanding)}</div><div class="sub">${pendingCount} unpaid</div></div>
-      <div class="kpi a"><div class="lab">Expenses</div><div class="val">${money(totalExpenses)}</div><div class="sub">${S.expenses.length} entries</div></div>
-      <div class="kpi b"><div class="lab">Purchases</div><div class="val">${money(totalPurchases)}</div><div class="sub">${S.bills.length} bills</div></div>
-      <div class="kpi c"><div class="lab">Net Profit</div><div class="val" style="color:${netProfit >= 0 ? 'var(--green)' : 'var(--red)'}">${money(netProfit)}</div><div class="sub">Sales − Purch − Exp</div></div>
-      <div class="kpi p"><div class="lab">Paid Invoices</div><div class="val">${paidInvCount}</div><div class="sub">of ${S.invoices.length}</div></div>
+  $('stage').innerHTML = `
+    <div class="grid kpi-grid">
+      <div class="kpi">
+        <div class="kpi-label"><span class="dot dot-emerald"></span>Total Sales</div>
+        <div class="kpi-value emerald">${money(totalSales)}</div>
+        <div class="kpi-note">${STATE.invoices.length} invoice${STATE.invoices.length !== 1 ? 's' : ''}</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label"><span class="dot dot-rose"></span>Outstanding</div>
+        <div class="kpi-value rose">${money(outstanding)}</div>
+        <div class="kpi-note">${STATE.invoices.filter(i => invStatus(i) !== 'paid').length} unpaid</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label"><span class="dot dot-amber"></span>Expenses</div>
+        <div class="kpi-value amber">${money(expenses)}</div>
+        <div class="kpi-note">${STATE.expenses.length} entr${STATE.expenses.length !== 1 ? 'ies' : 'y'}</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label"><span class="dot dot-cyan"></span>Purchases</div>
+        <div class="kpi-value cyan">${money(purchases)}</div>
+        <div class="kpi-note">${STATE.bills.length} bill${STATE.bills.length !== 1 ? 's' : ''}</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label"><span class="dot dot-violet"></span>Net Profit</div>
+        <div class="kpi-value ${net >= 0 ? 'emerald' : 'rose'}">${money(net)}</div>
+        <div class="kpi-note">Sales − Purchases − Expenses</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label"><span class="dot dot-pink"></span>Customers</div>
+        <div class="kpi-value pink">${STATE.customers.length}</div>
+        <div class="kpi-note">${STATE.vendors.length} vendors</div>
+      </div>
     </div>
 
-    <div class="card">
-      <h3>📈 Sales — Last 6 Months</h3>
-      <div class="chart-box"><canvas id="dashChart"></canvas></div>
+    <div class="panel">
+      <div class="panel-head">
+        <h3>Sales Performance</h3>
+        <span class="sub">Last 6 months</span>
+      </div>
+      <div class="chart-wrap"><canvas id="dashChart"></canvas></div>
     </div>
 
-    <div class="card">
-      <h3>Recent Invoices <span class="hint">Latest 5</span></h3>
-      ${S.invoices.length === 0
-        ? `<div class="empty"><span class="big">▤</span>No invoices yet. Create your first one.</div>`
-        : `<div class="tbl-wrap"><table class="tbl">
-            <thead><tr><th>Number</th><th>Customer</th><th class="num">Total</th><th>Status</th></tr></thead>
-            <tbody>
-              ${[...S.invoices].reverse().slice(0, 5).map(i => {
-                const st = invoiceStatus(i);
-                const cls = st === 'paid' ? 'g' : st === 'partial' ? 'a' : 'r';
-                return `<tr>
-                  <td class="name">${esc(i.number)}</td>
-                  <td>${esc(i.customerName)}</td>
-                  <td class="num">${money(i.total)}</td>
-                  <td><span class="badge ${cls}">${st}</span></td>
-                </tr>`;
-              }).join('')}
-            </tbody>
-          </table></div>`}
+    <div class="panel">
+      <div class="panel-head">
+        <h3>Recent Invoices</h3>
+        <span class="sub">Latest activity</span>
+      </div>
+      ${STATE.invoices.length === 0
+        ? `<div class="empty">
+             <div class="empty-icon">◧</div>
+             <div class="empty-title">No invoices yet</div>
+             <div class="empty-note">Create your first invoice to start tracking sales.</div>
+           </div>`
+        : `<div class="tbl-scroll">
+            <table class="data">
+              <thead>
+                <tr><th>Invoice</th><th>Customer</th><th class="num">Total</th><th>Status</th></tr>
+              </thead>
+              <tbody>
+                ${[...STATE.invoices].reverse().slice(0, 6).map(i => `
+                  <tr>
+                    <td class="name">${esc(i.number)}</td>
+                    <td>${esc(i.customerName)}</td>
+                    <td class="num">${money(i.total)}</td>
+                    <td>${pillFor(invStatus(i))}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+           </div>`}
     </div>
   `;
 
   // Chart
-  const months = [], sales = [];
+  const months = [], values = [];
   for (let i = 5; i >= 0; i--) {
-    const d = new Date();
-    d.setMonth(d.getMonth() - i);
+    const d = new Date(); d.setMonth(d.getMonth() - i);
     const ym = d.toISOString().slice(0, 7);
     months.push(d.toLocaleString('en', { month: 'short' }));
-    sales.push(S.invoices.filter(inv => inv.date?.startsWith(ym)).reduce((s, inv) => s + inv.total, 0));
+    values.push(STATE.invoices.filter(inv => inv.date?.startsWith(ym)).reduce((s, inv) => s + inv.total, 0));
   }
   const ctx = $('dashChart');
-  if (ctx) {
-    if (dashChart) dashChart.destroy();
-    dashChart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: months,
-        datasets: [{
-          data: sales,
-          backgroundColor: 'rgba(79,124,255,.7)',
-          borderRadius: 6,
-          borderWidth: 0
-        }]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: {
-          y: {
-            beginAtZero: true,
-            grid: { color: 'rgba(255,255,255,.05)' },
-            ticks: { color: '#8b8ba8', font: { size: 10 } }
-          },
-          x: {
-            grid: { display: false },
-            ticks: { color: '#8b8ba8', font: { size: 10 } }
-          }
+  if (!ctx) return;
+  if (dashChart) dashChart.destroy();
+  const gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 240);
+  gradient.addColorStop(0, 'rgba(124,92,255,.7)');
+  gradient.addColorStop(1, 'rgba(124,92,255,.05)');
+  dashChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: months,
+      datasets: [{
+        data: values,
+        borderColor: '#9b7fff',
+        backgroundColor: gradient,
+        borderWidth: 2.5,
+        fill: true,
+        tension: .4,
+        pointBackgroundColor: '#08090f',
+        pointBorderColor: '#9b7fff',
+        pointBorderWidth: 2,
+        pointRadius: 5,
+        pointHoverRadius: 7
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: {
+        backgroundColor: '#1c2030',
+        borderColor: 'rgba(255,255,255,.1)',
+        borderWidth: 1,
+        padding: 12,
+        cornerRadius: 10,
+        titleColor: '#eef0f8',
+        bodyColor: '#9ba0b8',
+        callbacks: { label: c => money(c.parsed.y) }
+      }},
+      scales: {
+        y: {
+          beginAtZero: true,
+          grid: { color: 'rgba(255,255,255,.04)', drawBorder: false },
+          ticks: { color: '#5c6180', font: { size: 10 }, callback: v => STATE.config.currency + v }
+        },
+        x: {
+          grid: { display: false },
+          ticks: { color: '#5c6180', font: { size: 10 } }
         }
       }
-    });
-  }
+    }
+  });
 }
 
-/* ══════════════════════════════════════════
+/* ═════════════════════════════════════════════════
    CUSTOMERS
-   ══════════════════════════════════════════ */
+   ═════════════════════════════════════════════════ */
 function renderCustomers() {
-  $('topActions').innerHTML = `<button class="act" onclick="editCustomer()">+ New Customer</button>`;
-  $('content').innerHTML = `
-    <div class="card">
-      <h3>Customers <span class="hint">${S.customers.length} total</span></h3>
-      ${S.customers.length === 0
-        ? `<div class="empty"><span class="big">☺</span>No customers yet. Add your first one.</div>`
-        : `<div class="tbl-wrap"><table class="tbl">
-            <thead><tr><th>Name</th><th>Phone</th><th>GSTIN</th><th class="num">Outstanding</th><th></th></tr></thead>
-            <tbody>
-              ${S.customers.map(c => {
-                const out = S.invoices.filter(i => i.customerId === c.id)
-                  .reduce((s, i) => s + invoiceBalance(i), 0);
-                return `<tr>
-                  <td><div class="name">${esc(c.name)}</div><div class="sm">${esc(c.email || '')}</div></td>
-                  <td>${esc(c.phone || '—')}</td>
-                  <td class="sm">${esc(c.gstin || '—')}</td>
-                  <td class="num" style="color:${out > 0 ? 'var(--red)' : 'inherit'}">${money(out)}</td>
-                  <td><div class="row-act">
-                    <button class="icon-btn" onclick="editCustomer('${c.id}')">✎</button>
-                    <button class="icon-btn" onclick="deleteCustomer('${c.id}')">✕</button>
-                  </div></td>
-                </tr>`;
-              }).join('')}
-            </tbody>
-          </table></div>`}
+  $('topActions').innerHTML = `<button class="cta" onclick="editCustomer()">+ New Customer</button>`;
+  const list = STATE.customers;
+  $('stage').innerHTML = `
+    <div class="panel">
+      <div class="panel-head">
+        <h3>Customers</h3>
+        <span class="sub">${list.length} total</span>
+      </div>
+      ${list.length === 0
+        ? `<div class="empty">
+             <div class="empty-icon">☺</div>
+             <div class="empty-title">No customers yet</div>
+             <div class="empty-note">Add customers to start creating invoices.</div>
+           </div>`
+        : `<div class="tbl-scroll">
+            <table class="data">
+              <thead>
+                <tr><th>Name</th><th>Contact</th><th>GSTIN</th><th class="num">Outstanding</th><th></th></tr>
+              </thead>
+              <tbody>
+                ${list.map(c => {
+                  const out = STATE.invoices.filter(i => i.customerId === c.id).reduce((s, i) => s + balance(i), 0);
+                  return `<tr>
+                    <td>
+                      <div class="name">${esc(c.name)}</div>
+                      ${c.address ? `<div class="sm">${esc(c.address)}</div>` : ''}
+                    </td>
+                    <td>
+                      ${c.phone ? `<div>${esc(c.phone)}</div>` : ''}
+                      ${c.email ? `<div class="sm">${esc(c.email)}</div>` : ''}
+                    </td>
+                    <td class="sm">${esc(c.gstin || '—')}</td>
+                    <td class="num ${out > 0 ? 'rose' : ''}">${money(out)}</td>
+                    <td>
+                      <div class="row-btns">
+                        <button class="row-btn" onclick="editCustomer('${c.id}')" title="Edit">✎</button>
+                        <button class="row-btn danger" onclick="deleteCustomer('${c.id}')" title="Delete">✕</button>
+                      </div>
+                    </td>
+                  </tr>`;
+                }).join('')}
+              </tbody>
+            </table>
+           </div>`}
     </div>
   `;
 }
 
 function editCustomer(id) {
-  const c = id ? S.customers.find(x => x.id === id) : { name: '', phone: '', email: '', gstin: '', stateCode: '', address: '' };
+  const c = id ? STATE.customers.find(x => x.id === id) : { name: '', phone: '', email: '', gstin: '', stateCode: '', address: '' };
   openModal(`
     <div class="modal-head">
-      <h3>${id ? 'Edit Customer' : 'New Customer'}</h3>
-      <button class="modal-close" onclick="closeModal()">×</button>
+      <h3>${id ? 'Edit' : 'New'} Customer</h3>
+      <button class="x" onclick="closeModal()">×</button>
     </div>
     <div class="modal-body">
-      <div class="form-grid">
-        <div class="field"><label>Name <span class="req">*</span></label><input id="c_name" value="${esc(c.name)}"></div>
-        <div class="field"><label>Phone</label><input id="c_phone" value="${esc(c.phone)}"></div>
-        <div class="field"><label>Email</label><input id="c_email" value="${esc(c.email)}"></div>
-        <div class="field"><label>GSTIN</label><input id="c_gstin" value="${esc(c.gstin)}"></div>
-        <div class="field"><label>State Code</label><input id="c_state" value="${esc(c.stateCode)}" placeholder="e.g. 27 for Maharashtra"></div>
-        <div class="field"><label>Address</label><input id="c_addr" value="${esc(c.address)}"></div>
+      <div class="field"><label>Full Name <span class="req">*</span></label><input id="c_name" value="${esc(c.name)}" autofocus></div>
+      <div class="field-row">
+        <div class="field"><label>Phone</label><input id="c_phone" type="tel" value="${esc(c.phone)}"></div>
+        <div class="field"><label>Email</label><input id="c_email" type="email" value="${esc(c.email)}"></div>
       </div>
+      <div class="field-row">
+        <div class="field"><label>GSTIN</label><input id="c_gstin" value="${esc(c.gstin)}"></div>
+        <div class="field"><label>State Code</label><input id="c_state" value="${esc(c.stateCode)}" placeholder="e.g. 27"></div>
+      </div>
+      <div class="field"><label>Address</label><textarea id="c_addr">${esc(c.address)}</textarea></div>
     </div>
     <div class="modal-foot">
-      <button class="btn ghost" onclick="closeModal()">Cancel</button>
-      <button class="btn primary" onclick="saveCustomer(${id ? `'${id}'` : 'null'})">Save</button>
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCustomer(${id ? `'${id}'` : 'null'})">Save</button>
     </div>
   `);
-  setTimeout(() => $('c_name').focus(), 100);
 }
 
 async function saveCustomer(id) {
   const name = $('c_name').value.trim();
-  if (!name) return toast('Name is required');
+  if (!name) return toast('Name is required', 'err');
   const data = {
-    name, phone: $('c_phone').value.trim(), email: $('c_email').value.trim(),
-    gstin: $('c_gstin').value.trim(), stateCode: $('c_state').value.trim(),
+    name,
+    phone: $('c_phone').value.trim(),
+    email: $('c_email').value.trim(),
+    gstin: $('c_gstin').value.trim(),
+    stateCode: $('c_state').value.trim(),
     address: $('c_addr').value.trim()
   };
-  if (id) {
-    const c = S.customers.find(x => x.id === id);
-    Object.assign(c, data);
-  } else {
-    S.customers.push({ id: uid(), ...data, created: nowStr() });
-  }
-  await saveState();
+  if (id) Object.assign(STATE.customers.find(x => x.id === id), data);
+  else STATE.customers.push({ id: uid(), ...data, created: nowStr() });
+  await save();
   closeModal();
-  toast(id ? 'Customer updated' : 'Customer added');
+  toast(id ? 'Customer updated' : 'Customer added', 'ok');
   renderCustomers();
 }
 
 async function deleteCustomer(id) {
-  if (!confirm('Delete this customer? Their invoices will remain but be unlinked.')) return;
-  S.customers = S.customers.filter(c => c.id !== id);
-  await saveState();
+  if (!confirm('Delete this customer?')) return;
+  STATE.customers = STATE.customers.filter(c => c.id !== id);
+  await save();
   toast('Customer deleted');
   renderCustomers();
 }
 
-window.editCustomer = editCustomer;
-window.saveCustomer = saveCustomer;
-window.deleteCustomer = deleteCustomer;
-
-/* ══════════════════════════════════════════
+/* ═════════════════════════════════════════════════
    VENDORS
-   ══════════════════════════════════════════ */
+   ═════════════════════════════════════════════════ */
 function renderVendors() {
-  $('topActions').innerHTML = `<button class="act" onclick="editVendor()">+ New Vendor</button>`;
-  $('content').innerHTML = `
-    <div class="card">
-      <h3>Vendors <span class="hint">${S.vendors.length} total</span></h3>
-      ${S.vendors.length === 0
-        ? `<div class="empty"><span class="big">⚑</span>No vendors yet. Add your first one.</div>`
-        : `<div class="tbl-wrap"><table class="tbl">
-            <thead><tr><th>Name</th><th>Phone</th><th>GSTIN</th><th class="num">Payable</th><th></th></tr></thead>
-            <tbody>
-              ${S.vendors.map(v => {
-                const pay = S.bills.filter(b => b.vendorId === v.id && !b.paid)
-                  .reduce((s, b) => s + b.total, 0);
-                return `<tr>
-                  <td><div class="name">${esc(v.name)}</div><div class="sm">${esc(v.email || '')}</div></td>
-                  <td>${esc(v.phone || '—')}</td>
+  $('topActions').innerHTML = `<button class="cta" onclick="editVendor()">+ New Vendor</button>`;
+  const list = STATE.vendors;
+  $('stage').innerHTML = `
+    <div class="panel">
+      <div class="panel-head">
+        <h3>Vendors</h3>
+        <span class="sub">${list.length} total</span>
+      </div>
+      ${list.length === 0
+        ? `<div class="empty">
+             <div class="empty-icon">⚑</div>
+             <div class="empty-title">No vendors yet</div>
+             <div class="empty-note">Add suppliers you purchase from.</div>
+           </div>`
+        : `<div class="tbl-scroll">
+            <table class="data">
+              <thead>
+                <tr><th>Name</th><th>Contact</th><th>GSTIN</th><th></th></tr>
+              </thead>
+              <tbody>
+                ${list.map(v => `<tr>
+                  <td><div class="name">${esc(v.name)}</div></td>
+                  <td>
+                    ${v.phone ? `<div>${esc(v.phone)}</div>` : ''}
+                    ${v.email ? `<div class="sm">${esc(v.email)}</div>` : ''}
+                  </td>
                   <td class="sm">${esc(v.gstin || '—')}</td>
-                  <td class="num" style="color:${pay > 0 ? 'var(--red)' : 'inherit'}">${money(pay)}</td>
-                  <td><div class="row-act">
-                    <button class="icon-btn" onclick="editVendor('${v.id}')">✎</button>
-                    <button class="icon-btn" onclick="deleteVendor('${v.id}')">✕</button>
-                  </div></td>
-                </tr>`;
-              }).join('')}
-            </tbody>
-          </table></div>`}
+                  <td>
+                    <div class="row-btns">
+                      <button class="row-btn" onclick="editVendor('${v.id}')">✎</button>
+                      <button class="row-btn danger" onclick="deleteVendor('${v.id}')">✕</button>
+                    </div>
+                  </td>
+                </tr>`).join('')}
+              </tbody>
+            </table>
+           </div>`}
     </div>
   `;
 }
 
 function editVendor(id) {
-  const v = id ? S.vendors.find(x => x.id === id) : { name: '', phone: '', email: '', gstin: '', address: '' };
+  const v = id ? STATE.vendors.find(x => x.id === id) : { name: '', phone: '', email: '', gstin: '', address: '' };
   openModal(`
     <div class="modal-head">
-      <h3>${id ? 'Edit Vendor' : 'New Vendor'}</h3>
-      <button class="modal-close" onclick="closeModal()">×</button>
+      <h3>${id ? 'Edit' : 'New'} Vendor</h3>
+      <button class="x" onclick="closeModal()">×</button>
     </div>
     <div class="modal-body">
-      <div class="form-grid">
-        <div class="field"><label>Name <span class="req">*</span></label><input id="v_name" value="${esc(v.name)}"></div>
+      <div class="field"><label>Vendor Name <span class="req">*</span></label><input id="v_name" value="${esc(v.name)}" autofocus></div>
+      <div class="field-row">
         <div class="field"><label>Phone</label><input id="v_phone" value="${esc(v.phone)}"></div>
         <div class="field"><label>Email</label><input id="v_email" value="${esc(v.email)}"></div>
-        <div class="field"><label>GSTIN</label><input id="v_gstin" value="${esc(v.gstin)}"></div>
-        <div class="field"><label>Address</label><input id="v_addr" value="${esc(v.address)}"></div>
       </div>
+      <div class="field"><label>GSTIN</label><input id="v_gstin" value="${esc(v.gstin)}"></div>
+      <div class="field"><label>Address</label><textarea id="v_addr">${esc(v.address)}</textarea></div>
     </div>
     <div class="modal-foot">
-      <button class="btn ghost" onclick="closeModal()">Cancel</button>
-      <button class="btn primary" onclick="saveVendor(${id ? `'${id}'` : 'null'})">Save</button>
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveVendor(${id ? `'${id}'` : 'null'})">Save</button>
     </div>
   `);
-  setTimeout(() => $('v_name').focus(), 100);
 }
 
 async function saveVendor(id) {
   const name = $('v_name').value.trim();
-  if (!name) return toast('Name is required');
+  if (!name) return toast('Name required', 'err');
   const data = {
-    name, phone: $('v_phone').value.trim(), email: $('v_email').value.trim(),
-    gstin: $('v_gstin').value.trim(), address: $('v_addr').value.trim()
+    name,
+    phone: $('v_phone').value.trim(),
+    email: $('v_email').value.trim(),
+    gstin: $('v_gstin').value.trim(),
+    address: $('v_addr').value.trim()
   };
-  if (id) {
-    Object.assign(S.vendors.find(x => x.id === id), data);
-  } else {
-    S.vendors.push({ id: uid(), ...data, created: nowStr() });
-  }
-  await saveState();
+  if (id) Object.assign(STATE.vendors.find(x => x.id === id), data);
+  else STATE.vendors.push({ id: uid(), ...data, created: nowStr() });
+  await save();
   closeModal();
-  toast(id ? 'Vendor updated' : 'Vendor added');
+  toast(id ? 'Vendor updated' : 'Vendor added', 'ok');
   renderVendors();
 }
 
 async function deleteVendor(id) {
   if (!confirm('Delete this vendor?')) return;
-  S.vendors = S.vendors.filter(v => v.id !== id);
-  await saveState();
+  STATE.vendors = STATE.vendors.filter(v => v.id !== id);
+  await save();
   toast('Vendor deleted');
   renderVendors();
 }
 
-window.editVendor = editVendor;
-window.saveVendor = saveVendor;
-window.deleteVendor = deleteVendor;
-
-/* ══════════════════════════════════════════
+/* ═════════════════════════════════════════════════
    ITEMS
-   ══════════════════════════════════════════ */
+   ═════════════════════════════════════════════════ */
 function renderItems() {
-  $('topActions').innerHTML = `<button class="act" onclick="editItem()">+ New Item</button>`;
-  $('content').innerHTML = `
-    <div class="card">
-      <h3>Items & Services <span class="hint">${S.items.length} total</span></h3>
-      ${S.items.length === 0
-        ? `<div class="empty"><span class="big">▣</span>No items yet. Add products or services you sell.</div>`
-        : `<div class="tbl-wrap"><table class="tbl">
-            <thead><tr><th>Name</th><th class="num">Rate</th><th class="num">GST %</th><th class="num">Stock</th><th></th></tr></thead>
-            <tbody>
-              ${S.items.map(it => `<tr>
-                <td><div class="name">${esc(it.name)}</div><div class="sm">${esc(it.description || '')}</div></td>
-                <td class="num">${money(it.rate)}</td>
-                <td class="num">${it.gst}%</td>
-                <td class="num">${it.stock ?? '—'}</td>
-                <td><div class="row-act">
-                  <button class="icon-btn" onclick="editItem('${it.id}')">✎</button>
-                  <button class="icon-btn" onclick="deleteItem('${it.id}')">✕</button>
-                </div></td>
-              </tr>`).join('')}
-            </tbody>
-          </table></div>`}
+  $('topActions').innerHTML = `<button class="cta" onclick="editItem()">+ New Item</button>`;
+  const list = STATE.items;
+  $('stage').innerHTML = `
+    <div class="panel">
+      <div class="panel-head">
+        <h3>Items & Services</h3>
+        <span class="sub">${list.length} total</span>
+      </div>
+      ${list.length === 0
+        ? `<div class="empty">
+             <div class="empty-icon">▣</div>
+             <div class="empty-title">No items yet</div>
+             <div class="empty-note">Add products or services you sell.</div>
+           </div>`
+        : `<div class="tbl-scroll">
+            <table class="data">
+              <thead>
+                <tr><th>Name</th><th class="num">Rate</th><th class="num">GST</th><th class="num">Stock</th><th></th></tr>
+              </thead>
+              <tbody>
+                ${list.map(it => `<tr>
+                  <td>
+                    <div class="name">${esc(it.name)}</div>
+                    ${it.description ? `<div class="sm">${esc(it.description)}</div>` : ''}
+                  </td>
+                  <td class="num">${money(it.rate)}</td>
+                  <td class="num">${it.gst}%</td>
+                  <td class="num ${Number(it.stock) <= 0 ? 'rose' : ''}">${it.stock ?? 0}</td>
+                  <td>
+                    <div class="row-btns">
+                      <button class="row-btn" onclick="editItem('${it.id}')">✎</button>
+                      <button class="row-btn danger" onclick="deleteItem('${it.id}')">✕</button>
+                    </div>
+                  </td>
+                </tr>`).join('')}
+              </tbody>
+            </table>
+           </div>`}
     </div>
   `;
 }
 
 function editItem(id) {
-  const it = id ? S.items.find(x => x.id === id) : { name: '', description: '', rate: 0, gst: 18, stock: 0, unit: 'pcs' };
+  const it = id ? STATE.items.find(x => x.id === id) : { name: '', description: '', rate: 0, gst: 18, stock: 0, unit: 'pcs' };
   openModal(`
     <div class="modal-head">
-      <h3>${id ? 'Edit Item' : 'New Item'}</h3>
-      <button class="modal-close" onclick="closeModal()">×</button>
+      <h3>${id ? 'Edit' : 'New'} Item</h3>
+      <button class="x" onclick="closeModal()">×</button>
     </div>
     <div class="modal-body">
-      <div class="form-grid">
-        <div class="field" style="grid-column:1/-1">
-          <label>Name <span class="req">*</span></label>
-          <input id="i_name" value="${esc(it.name)}" placeholder="e.g. Web Design Service">
-        </div>
-        <div class="field" style="grid-column:1/-1">
-          <label>Description</label>
-          <input id="i_desc" value="${esc(it.description)}">
-        </div>
-        <div class="field"><label>Rate</label><input id="i_rate" type="number" value="${it.rate}" min="0" step="0.01"></div>
+      <div class="field"><label>Name <span class="req">*</span></label><input id="i_name" value="${esc(it.name)}" placeholder="e.g. Design Service" autofocus></div>
+      <div class="field"><label>Description</label><input id="i_desc" value="${esc(it.description)}"></div>
+      <div class="field-row three">
+        <div class="field"><label>Rate</label><input id="i_rate" type="number" value="${it.rate}" step="0.01"></div>
         <div class="field"><label>GST %</label>
-          <select id="i_gst">
-            ${[0,5,12,18,28].map(r => `<option value="${r}" ${r == it.gst ? 'selected' : ''}>${r}%</option>`).join('')}
-          </select>
+          <select id="i_gst">${[0,5,12,18,28].map(r => `<option value="${r}" ${r==it.gst?'selected':''}>${r}%</option>`).join('')}</select>
         </div>
-        <div class="field"><label>Stock Qty</label><input id="i_stock" type="number" value="${it.stock ?? 0}" min="0"></div>
-        <div class="field"><label>Unit</label><input id="i_unit" value="${esc(it.unit || 'pcs')}"></div>
+        <div class="field"><label>Stock Qty</label><input id="i_stock" type="number" value="${it.stock ?? 0}"></div>
       </div>
+      <div class="field"><label>Unit</label><input id="i_unit" value="${esc(it.unit || 'pcs')}" placeholder="pcs, kg, hr..."></div>
     </div>
     <div class="modal-foot">
-      <button class="btn ghost" onclick="closeModal()">Cancel</button>
-      <button class="btn primary" onclick="saveItem(${id ? `'${id}'` : 'null'})">Save</button>
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveItem(${id ? `'${id}'` : 'null'})">Save</button>
     </div>
   `);
-  setTimeout(() => $('i_name').focus(), 100);
 }
 
 async function saveItem(id) {
   const name = $('i_name').value.trim();
-  if (!name) return toast('Name is required');
+  if (!name) return toast('Name required', 'err');
   const data = {
     name,
     description: $('i_desc').value.trim(),
@@ -754,194 +1298,184 @@ async function saveItem(id) {
     stock: Number($('i_stock').value) || 0,
     unit: $('i_unit').value.trim() || 'pcs'
   };
-  if (id) Object.assign(S.items.find(x => x.id === id), data);
-  else S.items.push({ id: uid(), ...data, created: nowStr() });
-  await saveState();
+  if (id) Object.assign(STATE.items.find(x => x.id === id), data);
+  else STATE.items.push({ id: uid(), ...data, created: nowStr() });
+  await save();
   closeModal();
-  toast(id ? 'Item updated' : 'Item added');
+  toast(id ? 'Item updated' : 'Item added', 'ok');
   renderItems();
 }
 
 async function deleteItem(id) {
   if (!confirm('Delete this item?')) return;
-  S.items = S.items.filter(x => x.id !== id);
-  await saveState();
+  STATE.items = STATE.items.filter(x => x.id !== id);
+  await save();
   toast('Item deleted');
   renderItems();
 }
 
-window.editItem = editItem;
-window.saveItem = saveItem;
-window.deleteItem = deleteItem;
-
-/* ══════════════════════════════════════════
+/* ═════════════════════════════════════════════════
    INVOICES
-   ══════════════════════════════════════════ */
+   ═════════════════════════════════════════════════ */
 function renderInvoices() {
-  $('topActions').innerHTML = `<button class="act" onclick="newInvoice()">+ New Invoice</button>`;
-  const list = [...S.invoices].reverse();
-  $('content').innerHTML = `
-    <div class="card">
-      <h3>Invoices <span class="hint">${S.invoices.length} total</span></h3>
+  $('topActions').innerHTML = `<button class="cta" onclick="newInvoice()">+ New Invoice</button>`;
+  const list = [...STATE.invoices].reverse();
+  $('stage').innerHTML = `
+    <div class="panel">
+      <div class="panel-head">
+        <h3>Invoices</h3>
+        <span class="sub">${list.length} total</span>
+      </div>
       ${list.length === 0
-        ? `<div class="empty"><span class="big">▤</span>No invoices yet.</div>`
-        : `<div class="tbl-wrap"><table class="tbl">
-            <thead><tr><th>Number</th><th>Date</th><th>Customer</th><th class="num">Total</th><th class="num">Balance</th><th>Status</th><th></th></tr></thead>
-            <tbody>
-              ${list.map(inv => {
-                const st = invoiceStatus(inv);
-                const cls = st === 'paid' ? 'g' : st === 'partial' ? 'a' : 'r';
-                const bal = invoiceBalance(inv);
-                return `<tr>
-                  <td class="name">${esc(inv.number)}</td>
-                  <td class="sm">${inv.date}</td>
-                  <td>${esc(inv.customerName)}</td>
-                  <td class="num">${money(inv.total)}</td>
-                  <td class="num" style="color:${bal > 0 ? 'var(--red)' : 'inherit'}">${money(bal)}</td>
-                  <td><span class="badge ${cls}">${st}</span></td>
-                  <td><div class="row-act">
-                    <button class="icon-btn" onclick="viewInvoice('${inv.id}')" title="View">👁</button>
-                    <button class="icon-btn" onclick="downloadInvoicePDF('${inv.id}')" title="PDF">⬇</button>
-                    <button class="icon-btn" onclick="printThermal('${inv.id}')" title="Thermal">🖨</button>
-                    <button class="icon-btn" onclick="deleteInvoice('${inv.id}')" title="Delete">✕</button>
-                  </div></td>
-                </tr>`;
-              }).join('')}
-            </tbody>
-          </table></div>`}
+        ? `<div class="empty">
+             <div class="empty-icon">◧</div>
+             <div class="empty-title">No invoices yet</div>
+             <div class="empty-note">Create your first tax invoice.</div>
+           </div>`
+        : `<div class="tbl-scroll">
+            <table class="data">
+              <thead>
+                <tr><th>Number</th><th>Customer</th><th>Date</th><th class="num">Total</th><th class="num">Balance</th><th>Status</th><th></th></tr>
+              </thead>
+              <tbody>
+                ${list.map(inv => {
+                  const st = invStatus(inv);
+                  return `<tr>
+                    <td class="name">${esc(inv.number)}</td>
+                    <td>${esc(inv.customerName)}</td>
+                    <td class="sm">${inv.date}</td>
+                    <td class="num">${money(inv.total)}</td>
+                    <td class="num ${balance(inv) > 0 ? 'rose' : ''}">${money(balance(inv))}</td>
+                    <td>${pillFor(st)}</td>
+                    <td>
+                      <div class="row-btns">
+                        <button class="row-btn" onclick="viewInvoice('${inv.id}')" title="View">◉</button>
+                        <button class="row-btn" onclick="pdfInvoice('${inv.id}')" title="PDF">⬇</button>
+                        <button class="row-btn danger" onclick="deleteInvoice('${inv.id}')" title="Delete">✕</button>
+                      </div>
+                    </td>
+                  </tr>`;
+                }).join('')}
+              </tbody>
+            </table>
+           </div>`}
     </div>
   `;
 }
 
+let lineSeq = 0;
+
 function newInvoice() {
-  if (S.customers.length === 0) {
-    toast('Add a customer first');
-    return;
-  }
-  const custOpts = S.customers.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('');
-  const itemOpts = S.items.map(i => `<option value="${i.id}">${esc(i.name)} — ${money(i.rate)}</option>`).join('');
+  if (STATE.customers.length === 0) return toast('Add a customer first', 'err');
+  lineSeq = 0;
+  const custOpts = STATE.customers.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('');
+  window._itemOpts = STATE.items.map(i => `<option value="${i.id}">${esc(i.name)} — ${money(i.rate)}</option>`).join('');
 
   openModal(`
     <div class="modal-head">
       <h3>New Invoice</h3>
-      <button class="modal-close" onclick="closeModal()">×</button>
+      <button class="x" onclick="closeModal()">×</button>
     </div>
     <div class="modal-body">
-      <div class="form-grid">
+      <div class="field-row">
         <div class="field"><label>Customer <span class="req">*</span></label>
-          <select id="inv_cust">${custOpts}</select>
+          <select id="inv_cust" onchange="recalc()">${custOpts}</select>
         </div>
-        <div class="field"><label>Date</label><input id="inv_date" type="date" value="${today()}"></div>
+        <div class="field"><label>Invoice Date</label><input id="inv_date" type="date" value="${today()}"></div>
+      </div>
+      <div class="field-row">
         <div class="field"><label>Due Date</label><input id="inv_due" type="date" value="${today()}"></div>
-        <div class="field"><label>Notes</label><input id="inv_notes" placeholder="Optional"></div>
+        <div class="field"><label>Notes</label><input id="inv_notes" placeholder="Optional note"></div>
       </div>
-
-      <div style="margin-top:18px;display:flex;align-items:center;justify-content:space-between">
-        <label style="font-size:12px;font-weight:600;color:var(--dim)">Line Items</label>
-        <button class="btn ghost tiny" onclick="addLineItem()">+ Add Item</button>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin:6px 0 8px">
+        <label style="font-size:11px;font-weight:600;color:var(--text-2);letter-spacing:.3px">LINE ITEMS</label>
+        <button class="btn btn-ghost btn-sm" onclick="addLine()">+ Add</button>
       </div>
-      <div id="lineItems" style="margin-top:10px"></div>
-
-      <div id="invTotals" style="margin-top:18px;padding:14px;background:var(--bg);border-radius:var(--rs);font-size:13px">
-        <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:var(--dim)">Subtotal</span><span id="t_sub">₹0.00</span></div>
-        <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:var(--dim)">CGST</span><span id="t_cgst">₹0.00</span></div>
-        <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:var(--dim)">SGST</span><span id="t_sgst">₹0.00</span></div>
-        <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:var(--dim)">IGST</span><span id="t_igst">₹0.00</span></div>
-        <div style="display:flex;justify-content:space-between;padding:8px 0 3px;border-top:1px solid var(--line);margin-top:5px;font-weight:700;font-size:15px"><span>Total</span><span id="t_total">₹0.00</span></div>
-      </div>
+      <div class="line-items" id="lines"></div>
+      <div class="totals" id="totals"></div>
     </div>
     <div class="modal-foot">
-      <button class="btn ghost" onclick="closeModal()">Cancel</button>
-      <button class="btn primary" onclick="saveInvoice()">Create Invoice</button>
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveInvoice()">Create Invoice</button>
     </div>
   `);
-
-  window._itemOpts = itemOpts;
-  window._lineCounter = 0;
-  addLineItem();
+  addLine();
 }
 
-function addLineItem() {
-  const id = 'ln_' + (++window._lineCounter);
-  const wrap = document.createElement('div');
-  wrap.id = id;
-  wrap.style.cssText = 'display:grid;grid-template-columns:2fr 60px 90px 70px 32px;gap:6px;margin-bottom:6px;align-items:center';
-  wrap.innerHTML = `
-    <select class="li-item" onchange="pickItem(this, '${id}')" style="padding:8px;background:var(--bg);border:1px solid var(--line);border-radius:6px;color:var(--text);font-size:12px">
-      <option value="">— Select item —</option>${window._itemOpts}
+function addLine() {
+  lineSeq++;
+  const id = 'ln' + lineSeq;
+  const el = document.createElement('div');
+  el.className = 'line';
+  el.id = id;
+  el.innerHTML = `
+    <select class="li-item" onchange="pickItem(this,'${id}')">
+      <option value="">— Item —</option>
+      ${window._itemOpts || ''}
       <option value="__custom">Custom line...</option>
     </select>
-    <input class="li-qty" type="number" value="1" min="0" placeholder="Qty" oninput="recalcInvoice()"
-      style="padding:8px;background:var(--bg);border:1px solid var(--line);border-radius:6px;color:var(--text);font-size:12px">
-    <input class="li-rate" type="number" value="0" min="0" placeholder="Rate" oninput="recalcInvoice()"
-      style="padding:8px;background:var(--bg);border:1px solid var(--line);border-radius:6px;color:var(--text);font-size:12px">
-    <input class="li-gst" type="number" value="18" min="0" placeholder="GST%" oninput="recalcInvoice()"
-      style="padding:8px;background:var(--bg);border:1px solid var(--line);border-radius:6px;color:var(--text);font-size:12px">
-    <button class="icon-btn" onclick="this.parentElement.remove();recalcInvoice()" title="Remove">✕</button>
+    <input class="li-qty" type="number" value="1" min="0" placeholder="Qty" oninput="recalc()">
+    <input class="li-rate" type="number" value="0" min="0" placeholder="Rate" oninput="recalc()">
+    <input class="li-gst" type="number" value="18" min="0" placeholder="GST%" oninput="recalc()">
+    <button class="rm" onclick="this.parentElement.remove();recalc()">✕</button>
   `;
-  $('lineItems').appendChild(wrap);
+  $('lines').appendChild(el);
 }
 
 function pickItem(sel, lineId) {
   const line = $(lineId);
-  const item = S.items.find(i => i.id === sel.value);
-  if (item) {
-    line.querySelector('.li-rate').value = item.rate;
-    line.querySelector('.li-gst').value = item.gst;
+  const it = STATE.items.find(x => x.id === sel.value);
+  if (it) {
+    line.querySelector('.li-rate').value = it.rate;
+    line.querySelector('.li-gst').value = it.gst;
   }
-  recalcInvoice();
+  recalc();
 }
 
-function recalcInvoice() {
+function collectLines() {
   const lines = [];
-  document.querySelectorAll('#lineItems > div').forEach(d => {
-    const sel = d.querySelector('.li-item');
-    const qty = Number(d.querySelector('.li-qty').value) || 0;
-    const rate = Number(d.querySelector('.li-rate').value) || 0;
-    const gst = Number(d.querySelector('.li-gst').value) || 0;
+  document.querySelectorAll('#lines .line').forEach(l => {
+    const sel = l.querySelector('.li-item');
+    const qty = Number(l.querySelector('.li-qty').value) || 0;
+    const rate = Number(l.querySelector('.li-rate').value) || 0;
+    const gst = Number(l.querySelector('.li-gst').value) || 0;
     const itemId = sel.value;
     const itemName = itemId && itemId !== '__custom'
-      ? (S.items.find(i => i.id === itemId)?.name || 'Item')
-      : (sel.options[sel.selectedIndex]?.text || 'Item');
+      ? (STATE.items.find(x => x.id === itemId)?.name || 'Item')
+      : 'Custom item';
     lines.push({ itemId, name: itemName, qty, rate, gst });
   });
+  return lines.filter(l => l.qty > 0);
+}
+
+function recalc() {
+  const lines = collectLines();
   const custId = $('inv_cust')?.value;
-  const cust = S.customers.find(c => c.id === custId);
-  const calc = calcInvoice(lines, cust?.stateCode || '');
-  if ($('t_sub')) $('t_sub').textContent = money(calc.subtotal);
-  if ($('t_cgst')) $('t_cgst').textContent = money(calc.cgst);
-  if ($('t_sgst')) $('t_sgst').textContent = money(calc.sgst);
-  if ($('t_igst')) $('t_igst').textContent = money(calc.igst);
-  if ($('t_total')) $('t_total').textContent = money(calc.total);
+  const cust = STATE.customers.find(c => c.id === custId);
+  const t = computeTax(lines, cust?.stateCode || '');
+  const el = $('totals');
+  if (!el) return;
+  el.innerHTML = `
+    <div class="totals-row"><span>Subtotal</span><b>${money(t.subtotal)}</b></div>
+    ${t.cgst ? `<div class="totals-row"><span>CGST</span><b>${money(t.cgst)}</b></div>` : ''}
+    ${t.sgst ? `<div class="totals-row"><span>SGST</span><b>${money(t.sgst)}</b></div>` : ''}
+    ${t.igst ? `<div class="totals-row"><span>IGST</span><b>${money(t.igst)}</b></div>` : ''}
+    <div class="totals-grand"><span>Total</span><span>${money(t.total)}</span></div>
+  `;
 }
 
 async function saveInvoice() {
   const custId = $('inv_cust').value;
-  const cust = S.customers.find(c => c.id === custId);
-  if (!cust) return toast('Select a customer');
+  const cust = STATE.customers.find(c => c.id === custId);
+  if (!cust) return toast('Select a customer', 'err');
+  const lines = collectLines();
+  if (lines.length === 0) return toast('Add at least one line', 'err');
+  const t = computeTax(lines, cust.stateCode);
+  const num = STATE.config.invPrefix + String(STATE.config.invCounter).padStart(4, '0');
 
-  const lines = [];
-  document.querySelectorAll('#lineItems > div').forEach(d => {
-    const sel = d.querySelector('.li-item');
-    const qty = Number(d.querySelector('.li-qty').value) || 0;
-    const rate = Number(d.querySelector('.li-rate').value) || 0;
-    if (qty <= 0) return;
-    const gst = Number(d.querySelector('.li-gst').value) || 0;
-    const itemId = sel.value;
-    const itemName = itemId && itemId !== '__custom'
-      ? (S.items.find(i => i.id === itemId)?.name || 'Item')
-      : 'Custom item';
-    lines.push({ itemId, name: itemName, qty, rate, gst });
-  });
-
-  if (lines.length === 0) return toast('Add at least one line item');
-
-  const calc = calcInvoice(lines, cust.stateCode);
-  const invNum = S.settings.invPrefix + String(S.settings.invCounter).padStart(4, '0');
-
-  S.invoices.push({
+  STATE.invoices.push({
     id: uid(),
-    number: invNum,
+    number: num,
     date: $('inv_date').value,
     dueDate: $('inv_due').value,
     customerId: cust.id,
@@ -949,57 +1483,56 @@ async function saveInvoice() {
     customerGSTIN: cust.gstin || '',
     customerStateCode: cust.stateCode || '',
     items: lines,
-    subtotal: calc.subtotal,
-    cgst: calc.cgst, sgst: calc.sgst, igst: calc.igst,
-    total: calc.total,
+    subtotal: t.subtotal,
+    cgst: t.cgst, sgst: t.sgst, igst: t.igst,
+    total: t.total,
     notes: $('inv_notes').value.trim(),
     payments: [],
     created: nowStr()
   });
 
-  // Decrease stock
+  // Decrement stock
   lines.forEach(l => {
     if (l.itemId && l.itemId !== '__custom') {
-      const it = S.items.find(i => i.id === l.itemId);
+      const it = STATE.items.find(x => x.id === l.itemId);
       if (it && it.stock != null) it.stock = Math.max(0, it.stock - l.qty);
     }
   });
 
-  S.settings.invCounter++;
-  await saveState();
+  STATE.config.invCounter++;
+  await save();
   closeModal();
-  toast('Invoice ' + invNum + ' created');
+  toast('Invoice ' + num + ' created', 'ok');
   renderInvoices();
 }
 
 function viewInvoice(id) {
-  const inv = S.invoices.find(x => x.id === id);
+  const inv = STATE.invoices.find(x => x.id === id);
   if (!inv) return;
-  const st = invoiceStatus(inv);
-  const bal = invoiceBalance(inv);
-
+  const st = invStatus(inv);
+  const bal = balance(inv);
+  const paid = inv.total - bal;
   openModal(`
     <div class="modal-head">
       <h3>Invoice ${esc(inv.number)}</h3>
-      <button class="modal-close" onclick="closeModal()">×</button>
+      <button class="x" onclick="closeModal()">×</button>
     </div>
     <div class="modal-body">
-      <div style="display:flex;justify-content:space-between;margin-bottom:16px;font-size:12px">
+      <div style="display:flex;justify-content:space-between;gap:16px;margin-bottom:18px;flex-wrap:wrap">
         <div>
-          <div style="color:var(--dim);font-size:10px;text-transform:uppercase;letter-spacing:.5px">Bill To</div>
-          <div style="font-weight:700;font-size:14px;margin-top:3px">${esc(inv.customerName)}</div>
-          <div style="color:var(--dim)">${esc(inv.customerGSTIN || '')}</div>
+          <div style="font-size:10px;font-weight:700;color:var(--text-3);letter-spacing:1px">BILL TO</div>
+          <div style="font-size:15px;font-weight:700;margin-top:4px">${esc(inv.customerName)}</div>
+          ${inv.customerGSTIN ? `<div style="font-size:11px;color:var(--text-3);margin-top:2px">GSTIN ${esc(inv.customerGSTIN)}</div>` : ''}
         </div>
         <div style="text-align:right">
-          <div style="color:var(--dim);font-size:10px;text-transform:uppercase;letter-spacing:.5px">Invoice</div>
-          <div style="font-weight:700;margin-top:3px">${esc(inv.number)}</div>
-          <div style="color:var(--dim)">${inv.date} · Due ${inv.dueDate}</div>
-          <div style="margin-top:5px"><span class="badge ${st === 'paid' ? 'g' : st === 'partial' ? 'a' : 'r'}">${st}</span></div>
+          <div style="font-size:10px;font-weight:700;color:var(--text-3);letter-spacing:1px">INVOICE</div>
+          <div style="font-weight:700;margin-top:4px">${esc(inv.number)}</div>
+          <div style="font-size:11px;color:var(--text-3);margin-top:2px">${inv.date} · Due ${inv.dueDate}</div>
+          <div style="margin-top:6px">${pillFor(st)}</div>
         </div>
       </div>
-
-      <div class="tbl-wrap">
-        <table class="tbl" style="min-width:auto">
+      <div class="tbl-scroll" style="margin:0">
+        <table class="data" style="min-width:auto">
           <thead><tr><th>Item</th><th class="num">Qty</th><th class="num">Rate</th><th class="num">GST</th><th class="num">Amount</th></tr></thead>
           <tbody>
             ${inv.items.map(it => `<tr>
@@ -1012,140 +1545,131 @@ function viewInvoice(id) {
           </tbody>
         </table>
       </div>
-
-      <div style="margin-top:14px;padding:14px;background:var(--bg);border-radius:var(--rs);font-size:12px">
-        <div style="display:flex;justify-content:space-between;padding:2px 0"><span style="color:var(--dim)">Subtotal</span><span>${money(inv.subtotal)}</span></div>
-        ${inv.cgst ? `<div style="display:flex;justify-content:space-between;padding:2px 0"><span style="color:var(--dim)">CGST</span><span>${money(inv.cgst)}</span></div>` : ''}
-        ${inv.sgst ? `<div style="display:flex;justify-content:space-between;padding:2px 0"><span style="color:var(--dim)">SGST</span><span>${money(inv.sgst)}</span></div>` : ''}
-        ${inv.igst ? `<div style="display:flex;justify-content:space-between;padding:2px 0"><span style="color:var(--dim)">IGST</span><span>${money(inv.igst)}</span></div>` : ''}
-        <div style="display:flex;justify-content:space-between;padding:8px 0 2px;border-top:1px solid var(--line);margin-top:5px;font-weight:700;font-size:14px"><span>Total</span><span>${money(inv.total)}</span></div>
-        <div style="display:flex;justify-content:space-between;padding:2px 0;color:var(--green)"><span>Paid</span><span>${money(inv.total - bal)}</span></div>
-        <div style="display:flex;justify-content:space-between;padding:2px 0;font-weight:700;color:${bal > 0 ? 'var(--red)' : 'var(--dim)'}"><span>Balance</span><span>${money(bal)}</span></div>
+      <div class="totals" style="margin-top:16px">
+        <div class="totals-row"><span>Subtotal</span><b>${money(inv.subtotal)}</b></div>
+        ${inv.cgst ? `<div class="totals-row"><span>CGST</span><b>${money(inv.cgst)}</b></div>` : ''}
+        ${inv.sgst ? `<div class="totals-row"><span>SGST</span><b>${money(inv.sgst)}</b></div>` : ''}
+        ${inv.igst ? `<div class="totals-row"><span>IGST</span><b>${money(inv.igst)}</b></div>` : ''}
+        <div class="totals-grand"><span>Total</span><span>${money(inv.total)}</span></div>
+        ${paid > 0 ? `<div class="totals-row emerald" style="padding-top:8px;border-top:1px solid var(--line);margin-top:8px"><span>Paid</span><b>${money(paid)}</b></div>` : ''}
+        ${bal > 0 ? `<div class="totals-row rose"><span>Balance</span><b>${money(bal)}</b></div>` : ''}
       </div>
-
-      ${inv.notes ? `<div style="margin-top:12px;font-size:12px"><div style="color:var(--dim);font-size:10px;text-transform:uppercase">Notes</div><div style="margin-top:3px">${esc(inv.notes)}</div></div>` : ''}
-
-      ${(inv.payments || []).length > 0 ? `
-        <div style="margin-top:14px">
-          <div style="color:var(--dim);font-size:10px;text-transform:uppercase;margin-bottom:6px">Payments</div>
+      ${inv.notes ? `<div style="margin-top:14px;font-size:12px;color:var(--text-2)"><b style="color:var(--text-3);font-size:10px;letter-spacing:1px">NOTES</b><div style="margin-top:4px">${esc(inv.notes)}</div></div>` : ''}
+      ${(inv.payments || []).length ? `
+        <div style="margin-top:16px">
+          <div style="font-size:10px;font-weight:700;color:var(--text-3);letter-spacing:1px;margin-bottom:6px">PAYMENTS</div>
           ${inv.payments.map(p => `
-            <div style="display:flex;justify-content:space-between;padding:6px 10px;background:var(--panel2);border-radius:6px;margin-bottom:4px;font-size:12px">
-              <span>${p.date} · ${esc(p.method)}</span>
-              <span style="font-weight:600;color:var(--green)">${money(p.amount)}</span>
+            <div style="display:flex;justify-content:space-between;padding:9px 12px;background:rgba(8,9,15,.5);border-radius:8px;margin-bottom:5px;font-size:12px">
+              <span>${p.date} · ${esc(p.method)}${p.reference ? ' · ' + esc(p.reference) : ''}</span>
+              <span class="emerald">${money(p.amount)}</span>
             </div>
           `).join('')}
         </div>` : ''}
     </div>
-    <div class="modal-foot" style="flex-wrap:wrap">
-      <button class="btn ghost" onclick="closeModal()">Close</button>
-      <button class="btn ghost" onclick="printThermal('${inv.id}')">🖨 Thermal</button>
-      <button class="btn ghost" onclick="downloadInvoicePDF('${inv.id}')">⬇ PDF</button>
-      ${bal > 0 ? `<button class="btn success" onclick="recordPayment('${inv.id}')">Record Payment</button>` : ''}
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal()">Close</button>
+      <button class="btn btn-ghost" onclick="thermal('${inv.id}')">🖨 Thermal</button>
+      <button class="btn btn-ghost" onclick="pdfInvoice('${inv.id}')">⬇ PDF</button>
+      ${bal > 0 ? `<button class="btn btn-success" onclick="recordPayment('${inv.id}')">Record Payment</button>` : ''}
     </div>
   `);
 }
 
 async function deleteInvoice(id) {
   if (!confirm('Delete this invoice permanently?')) return;
-  S.invoices = S.invoices.filter(i => i.id !== id);
-  await saveState();
+  STATE.invoices = STATE.invoices.filter(i => i.id !== id);
+  await save();
   toast('Invoice deleted');
   renderInvoices();
 }
 
 function recordPayment(invId) {
-  const inv = S.invoices.find(x => x.id === invId);
+  const inv = STATE.invoices.find(x => x.id === invId);
   if (!inv) return;
-  const bal = invoiceBalance(inv);
+  const bal = balance(inv);
   openModal(`
     <div class="modal-head">
       <h3>Record Payment</h3>
-      <button class="modal-close" onclick="closeModal()">×</button>
+      <button class="x" onclick="closeModal()">×</button>
     </div>
     <div class="modal-body">
-      <div style="font-size:13px;color:var(--dim);margin-bottom:14px">
-        Invoice ${esc(inv.number)} · Balance ${money(bal)}
+      <div style="font-size:12px;color:var(--text-2);margin-bottom:14px;padding:10px 12px;background:rgba(8,9,15,.5);border-radius:8px">
+        Invoice <b style="color:var(--text)">${esc(inv.number)}</b> · Balance <b class="rose">${money(bal)}</b>
       </div>
-      <div class="form-grid">
-        <div class="field"><label>Amount</label><input id="p_amt" type="number" value="${bal.toFixed(2)}" step="0.01"></div>
+      <div class="field-row">
+        <div class="field"><label>Amount</label><input id="p_amt" type="number" value="${bal.toFixed(2)}" step="0.01" autofocus></div>
         <div class="field"><label>Date</label><input id="p_date" type="date" value="${today()}"></div>
+      </div>
+      <div class="field-row">
         <div class="field"><label>Method</label>
-          <select id="p_method">
-            <option>Cash</option><option>Bank Transfer</option><option>UPI</option>
-            <option>Credit Card</option><option>Cheque</option>
-          </select>
+          <select id="p_method"><option>Cash</option><option>Bank Transfer</option><option>UPI</option><option>Card</option><option>Cheque</option></select>
         </div>
-        <div class="field"><label>Reference / Note</label><input id="p_ref" placeholder="Optional"></div>
+        <div class="field"><label>Reference</label><input id="p_ref" placeholder="Optional"></div>
       </div>
     </div>
     <div class="modal-foot">
-      <button class="btn ghost" onclick="closeModal()">Cancel</button>
-      <button class="btn success" onclick="savePayment('${invId}')">Record</button>
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-success" onclick="savePayment('${invId}')">Record Payment</button>
     </div>
   `);
-  setTimeout(() => $('p_amt').focus(), 100);
 }
 
 async function savePayment(invId) {
-  const inv = S.invoices.find(x => x.id === invId);
+  const inv = STATE.invoices.find(x => x.id === invId);
   if (!inv) return;
-  const amount = Number($('p_amt').value) || 0;
-  if (amount <= 0) return toast('Enter a valid amount');
+  const amt = Number($('p_amt').value) || 0;
+  if (amt <= 0) return toast('Invalid amount', 'err');
   inv.payments = inv.payments || [];
   inv.payments.push({
     id: uid(),
     date: $('p_date').value,
-    amount,
+    amount: amt,
     method: $('p_method').value,
     reference: $('p_ref').value.trim(),
     recorded: nowStr()
   });
-  await saveState();
+  await save();
   closeModal();
-  toast('Payment recorded');
-  if (currentRoute === 'invoices') renderInvoices();
-  else if (currentRoute === 'dashboard') renderDashboard();
-  else if (currentRoute === 'payments') renderPayments();
+  toast('Payment recorded', 'ok');
+  if (currentPage === 'dashboard') renderDashboard();
+  else if (currentPage === 'invoices') renderInvoices();
+  else if (currentPage === 'payments') renderPayments();
 }
 
-/* ══════════════════════════════════════════
-   PDF & THERMAL
-   ══════════════════════════════════════════ */
-function downloadInvoicePDF(id) {
-  const inv = S.invoices.find(x => x.id === id);
+function pdfInvoice(id) {
+  const inv = STATE.invoices.find(x => x.id === id);
   if (!inv) return;
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
+  const c = STATE.config;
 
-  doc.setFontSize(18);
+  doc.setFontSize(20);
   doc.setFont(undefined, 'bold');
-  doc.text(S.settings.name || 'My Business', 14, 20);
+  doc.text(c.bizName || 'My Business', 14, 22);
 
   doc.setFontSize(9);
   doc.setFont(undefined, 'normal');
-  let y = 27;
-  if (S.settings.address) { doc.text(S.settings.address, 14, y); y += 5; }
-  if (S.settings.gstin) { doc.text('GSTIN: ' + S.settings.gstin, 14, y); y += 5; }
-  if (S.settings.phone) { doc.text('Phone: ' + S.settings.phone, 14, y); y += 5; }
-  if (S.settings.email) { doc.text('Email: ' + S.settings.email, 14, y); y += 5; }
+  let y = 29;
+  if (c.address) { doc.text(c.address, 14, y); y += 5; }
+  if (c.gstin) { doc.text('GSTIN: ' + c.gstin, 14, y); y += 5; }
+  if (c.phone) { doc.text('Phone: ' + c.phone, 14, y); y += 5; }
 
-  doc.setFontSize(14);
+  doc.setFontSize(16);
   doc.setFont(undefined, 'bold');
-  doc.text('TAX INVOICE', 140, 20);
+  doc.text('TAX INVOICE', 196, 22, { align: 'right' });
   doc.setFontSize(10);
   doc.setFont(undefined, 'normal');
-  doc.text(inv.number, 140, 27);
-  doc.text('Date: ' + inv.date, 140, 32);
-  doc.text('Due: ' + inv.dueDate, 140, 37);
+  doc.text(inv.number, 196, 29, { align: 'right' });
+  doc.text('Date: ' + inv.date, 196, 34, { align: 'right' });
+  doc.text('Due: ' + inv.dueDate, 196, 39, { align: 'right' });
 
-  y = Math.max(y, 42) + 6;
-
+  y = Math.max(y, 44) + 6;
   doc.setFontSize(9);
   doc.setTextColor(120);
   doc.text('BILL TO', 14, y);
   doc.setTextColor(0);
   y += 6;
-  doc.setFontSize(11);
+  doc.setFontSize(12);
   doc.setFont(undefined, 'bold');
   doc.text(inv.customerName, 14, y);
   y += 5;
@@ -1154,76 +1678,51 @@ function downloadInvoicePDF(id) {
   if (inv.customerGSTIN) { doc.text('GSTIN: ' + inv.customerGSTIN, 14, y); y += 4; }
 
   y += 6;
-
   doc.autoTable({
     startY: y,
-    head: [['Item', 'Qty', 'Rate', 'GST %', 'Amount']],
-    body: inv.items.map(it => [
-      it.name,
-      String(it.qty),
-      money(it.rate),
-      it.gst + '%',
-      money(it.qty * it.rate)
-    ]),
+    head: [['Item', 'Qty', 'Rate', 'GST%', 'Amount']],
+    body: inv.items.map(it => [it.name, String(it.qty), money(it.rate), it.gst + '%', money(it.qty * it.rate)]),
     theme: 'grid',
-    headStyles: { fillColor: [79, 124, 255], fontSize: 9 },
+    headStyles: { fillColor: [124, 92, 255], fontSize: 9 },
     bodyStyles: { fontSize: 9 },
-    columnStyles: {
-      0: { cellWidth: 70 },
-      1: { halign: 'right' },
-      2: { halign: 'right' },
-      3: { halign: 'right' },
-      4: { halign: 'right' }
-    }
+    columnStyles: { 1: { halign: 'right' }, 2: { halign: 'right' }, 3: { halign: 'right' }, 4: { halign: 'right' } }
   });
 
-  let endY = doc.lastAutoTable.finalY + 8;
-  const labelX = 130, valX = 196;
-
+  let ey = doc.lastAutoTable.finalY + 8;
+  const lx = 130, vx = 196;
   doc.setFontSize(9);
-  doc.text('Subtotal', labelX, endY);
-  doc.text(money(inv.subtotal), valX, endY, { align: 'right' });
-  endY += 5;
-  if (inv.cgst) { doc.text('CGST', labelX, endY); doc.text(money(inv.cgst), valX, endY, { align: 'right' }); endY += 5; }
-  if (inv.sgst) { doc.text('SGST', labelX, endY); doc.text(money(inv.sgst), valX, endY, { align: 'right' }); endY += 5; }
-  if (inv.igst) { doc.text('IGST', labelX, endY); doc.text(money(inv.igst), valX, endY, { align: 'right' }); endY += 5; }
-
-  doc.setLineWidth(0.3);
-  doc.line(labelX, endY, valX, endY);
-  endY += 6;
-  doc.setFontSize(11);
-  doc.setFont(undefined, 'bold');
-  doc.text('Total', labelX, endY);
-  doc.text(money(inv.total), valX, endY, { align: 'right' });
-
-  if (inv.notes) {
-    endY += 14;
-    doc.setFontSize(8);
-    doc.setFont(undefined, 'normal');
-    doc.text('Notes: ' + inv.notes, 14, endY);
-  }
+  doc.text('Subtotal', lx, ey); doc.text(money(inv.subtotal), vx, ey, { align: 'right' }); ey += 5;
+  if (inv.cgst) { doc.text('CGST', lx, ey); doc.text(money(inv.cgst), vx, ey, { align: 'right' }); ey += 5; }
+  if (inv.sgst) { doc.text('SGST', lx, ey); doc.text(money(inv.sgst), vx, ey, { align: 'right' }); ey += 5; }
+  if (inv.igst) { doc.text('IGST', lx, ey); doc.text(money(inv.igst), vx, ey, { align: 'right' }); ey += 5; }
+  doc.line(lx, ey, vx, ey); ey += 6;
+  doc.setFontSize(12); doc.setFont(undefined, 'bold');
+  doc.text('Total', lx, ey); doc.text(money(inv.total), vx, ey, { align: 'right' });
 
   doc.save(inv.number + '.pdf');
-  toast('PDF downloaded');
+  toast('PDF downloaded', 'ok');
 }
 
-function printThermal(id) {
-  const inv = S.invoices.find(x => x.id === id);
+function thermal(id) {
+  const inv = STATE.invoices.find(x => x.id === id);
   if (!inv) return;
+  const c = STATE.config;
   const html = `
-    <div class="thermal">
-      <div class="c"><b>${esc(S.settings.name || 'My Business')}</b></div>
-      ${S.settings.address ? `<div class="c">${esc(S.settings.address)}</div>` : ''}
-      ${S.settings.gstin ? `<div class="c">GSTIN: ${esc(S.settings.gstin)}</div>` : ''}
+    <div class="thermal" id="thermalPrint">
+      <div class="center">
+        <div class="biz">${esc(c.bizName || 'My Business')}</div>
+        ${c.address ? `<div>${esc(c.address)}</div>` : ''}
+        ${c.gstin ? `<div>GSTIN: ${esc(c.gstin)}</div>` : ''}
+      </div>
       <hr>
-      <div>${esc(inv.number)} · ${inv.date}</div>
+      <div><b>${esc(inv.number)}</b> · ${inv.date}</div>
       <div>To: ${esc(inv.customerName)}</div>
       <hr>
       <table>
         ${inv.items.map(it => `
           <tr>
             <td>${esc(it.name)}</td>
-            <td style="text-align:right">${it.qty} × ${money(it.rate)}</td>
+            <td style="text-align:right">${it.qty}×${money(it.rate)}</td>
             <td style="text-align:right">${money(it.qty * it.rate)}</td>
           </tr>
         `).join('')}
@@ -1234,545 +1733,517 @@ function printThermal(id) {
         ${inv.cgst ? `<tr><td>CGST</td><td style="text-align:right">${money(inv.cgst)}</td></tr>` : ''}
         ${inv.sgst ? `<tr><td>SGST</td><td style="text-align:right">${money(inv.sgst)}</td></tr>` : ''}
         ${inv.igst ? `<tr><td>IGST</td><td style="text-align:right">${money(inv.igst)}</td></tr>` : ''}
-        <tr><td class="total">TOTAL</td><td class="total" style="text-align:right">${money(inv.total)}</td></tr>
+        <tr class="grand"><td>TOTAL</td><td style="text-align:right">${money(inv.total)}</td></tr>
       </table>
       <hr>
-      <div class="c">Thank you!</div>
+      <div class="center">Thank you!</div>
     </div>
   `;
   openModal(`
     <div class="modal-head">
       <h3>Thermal Receipt</h3>
-      <button class="modal-close" onclick="closeModal()">×</button>
+      <button class="x" onclick="closeModal()">×</button>
     </div>
-    <div class="modal-body" style="background:#000;padding:20px">${html}</div>
+    <div class="modal-body" style="background:rgba(0,0,0,.4)">${html}</div>
     <div class="modal-foot">
-      <button class="btn ghost" onclick="closeModal()">Close</button>
-      <button class="btn primary" onclick="printThermalWindow()">🖨 Print</button>
+      <button class="btn btn-ghost" onclick="closeModal()">Close</button>
+      <button class="btn btn-primary" onclick="window.print()">🖨 Print</button>
     </div>
   `);
 }
 
-function printThermalWindow() {
-  const node = document.querySelector('.thermal');
-  if (!node) return;
-  const w = window.open('', '_blank', 'width=400,height=600');
-  w.document.write(`
-    <html><head><title>Receipt</title>
-    <style>
-      body{margin:0;padding:10px;font-family:'Courier New',monospace;font-size:11px;color:#000}
-      .thermal{padding:8px;max-width:320px;margin:0 auto}
-      .thermal .c{text-align:center}
-      .thermal hr{border:none;border-top:1px dashed #666;margin:5px 0}
-      .thermal table{width:100%;font-size:10px}
-      .thermal table td{padding:1px 0}
-      .thermal .total{font-weight:700;font-size:12px}
-    </style></head>
-    <body onload="window.print();setTimeout(()=>window.close(),500)">${node.outerHTML}</body></html>
-  `);
-  w.document.close();
-}
-
-/* ══════════════════════════════════════════
+/* ═════════════════════════════════════════════════
    ESTIMATES
-   ══════════════════════════════════════════ */
+   ═════════════════════════════════════════════════ */
 function renderEstimates() {
-  $('topActions').innerHTML = `<button class="act" onclick="newEstimate()">+ New Estimate</button>`;
-  const list = [...S.estimates].reverse();
-  $('content').innerHTML = `
-    <div class="card">
-      <h3>Estimates / Quotations <span class="hint">${S.estimates.length} total</span></h3>
+  $('topActions').innerHTML = `<button class="cta" onclick="newEstimate()">+ New Estimate</button>`;
+  const list = [...STATE.estimates].reverse();
+  $('stage').innerHTML = `
+    <div class="panel">
+      <div class="panel-head">
+        <h3>Estimates</h3>
+        <span class="sub">${list.length} total</span>
+      </div>
       ${list.length === 0
-        ? `<div class="empty"><span class="big">◆</span>No estimates yet. Create quotations for your customers.</div>`
-        : `<div class="tbl-wrap"><table class="tbl">
-            <thead><tr><th>Number</th><th>Date</th><th>Customer</th><th class="num">Total</th><th>Status</th><th></th></tr></thead>
-            <tbody>
-              ${list.map(est => `<tr>
-                <td class="name">${esc(est.number)}</td>
-                <td class="sm">${est.date}</td>
-                <td>${esc(est.customerName)}</td>
-                <td class="num">${money(est.total)}</td>
-                <td><span class="badge ${est.converted ? 'g' : 'b'}">${est.converted ? 'converted' : 'open'}</span></td>
-                <td><div class="row-act">
-                  ${!est.converted ? `<button class="icon-btn" onclick="convertEstimate('${est.id}')" title="Convert to invoice">→</button>` : ''}
-                  <button class="icon-btn" onclick="deleteEstimate('${est.id}')">✕</button>
-                </div></td>
-              </tr>`).join('')}
-            </tbody>
-          </table></div>`}
+        ? `<div class="empty">
+             <div class="empty-icon">◇</div>
+             <div class="empty-title">No estimates yet</div>
+             <div class="empty-note">Create quotations and convert them to invoices in one click.</div>
+           </div>`
+        : `<div class="tbl-scroll">
+            <table class="data">
+              <thead>
+                <tr><th>Number</th><th>Customer</th><th>Date</th><th class="num">Total</th><th>Status</th><th></th></tr>
+              </thead>
+              <tbody>
+                ${list.map(est => `<tr>
+                  <td class="name">${esc(est.number)}</td>
+                  <td>${esc(est.customerName)}</td>
+                  <td class="sm">${est.date}</td>
+                  <td class="num">${money(est.total)}</td>
+                  <td>${pillFor(est.converted ? 'converted' : 'open')}</td>
+                  <td>
+                    <div class="row-btns">
+                      ${!est.converted ? `<button class="row-btn" onclick="convertEstimate('${est.id}')" title="Convert to invoice">→</button>` : ''}
+                      <button class="row-btn danger" onclick="deleteEstimate('${est.id}')">✕</button>
+                    </div>
+                  </td>
+                </tr>`).join('')}
+              </tbody>
+            </table>
+           </div>`}
     </div>
   `;
 }
 
 function newEstimate() {
-  if (S.customers.length === 0) return toast('Add a customer first');
-  const custOpts = S.customers.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('');
-  const itemOpts = S.items.map(i => `<option value="${i.id}">${esc(i.name)} — ${money(i.rate)}</option>`).join('');
+  if (STATE.customers.length === 0) return toast('Add a customer first', 'err');
+  lineSeq = 0;
+  const custOpts = STATE.customers.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('');
+  window._itemOpts = STATE.items.map(i => `<option value="${i.id}">${esc(i.name)} — ${money(i.rate)}</option>`).join('');
 
   openModal(`
     <div class="modal-head">
       <h3>New Estimate</h3>
-      <button class="modal-close" onclick="closeModal()">×</button>
+      <button class="x" onclick="closeModal()">×</button>
     </div>
     <div class="modal-body">
-      <div class="form-grid">
-        <div class="field"><label>Customer <span class="req">*</span></label><select id="est_cust">${custOpts}</select></div>
-        <div class="field"><label>Date</label><input id="est_date" type="date" value="${today()}"></div>
+      <div class="field-row">
+        <div class="field"><label>Customer <span class="req">*</span></label>
+          <select id="inv_cust" onchange="recalc()">${custOpts}</select>
+        </div>
+        <div class="field"><label>Date</label><input id="inv_date" type="date" value="${today()}"></div>
       </div>
-      <div style="margin-top:16px;display:flex;align-items:center;justify-content:space-between">
-        <label style="font-size:12px;font-weight:600;color:var(--dim)">Line Items</label>
-        <button class="btn ghost tiny" onclick="addEstimateLine()">+ Add Item</button>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin:10px 0 8px">
+        <label style="font-size:11px;font-weight:600;color:var(--text-2);letter-spacing:.3px">LINE ITEMS</label>
+        <button class="btn btn-ghost btn-sm" onclick="addLine()">+ Add</button>
       </div>
-      <div id="estLines" style="margin-top:10px"></div>
-      <div id="estTotals" style="margin-top:14px;padding:14px;background:var(--bg);border-radius:var(--rs);font-size:13px">
-        <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:var(--dim)">Subtotal</span><span id="e_sub">₹0.00</span></div>
-        <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:var(--dim)">Tax</span><span id="e_tax">₹0.00</span></div>
-        <div style="display:flex;justify-content:space-between;padding:8px 0 3px;border-top:1px solid var(--line);margin-top:5px;font-weight:700;font-size:15px"><span>Total</span><span id="e_total">₹0.00</span></div>
-      </div>
+      <div class="line-items" id="lines"></div>
+      <div class="totals" id="totals"></div>
     </div>
     <div class="modal-foot">
-      <button class="btn ghost" onclick="closeModal()">Cancel</button>
-      <button class="btn primary" onclick="saveEstimate()">Save Estimate</button>
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEstimate()">Save Estimate</button>
     </div>
   `);
-  window._itemOpts = itemOpts;
-  window._estCounter = 0;
-  addEstimateLine();
-}
-
-function addEstimateLine() {
-  const id = 'el_' + (++window._estCounter);
-  const wrap = document.createElement('div');
-  wrap.id = id;
-  wrap.style.cssText = 'display:grid;grid-template-columns:2fr 60px 90px 70px 32px;gap:6px;margin-bottom:6px;align-items:center';
-  wrap.innerHTML = `
-    <select class="el-item" onchange="pickEstimateItem(this, '${id}')" style="padding:8px;background:var(--bg);border:1px solid var(--line);border-radius:6px;color:var(--text);font-size:12px">
-      <option value="">— Select item —</option>${window._itemOpts}
-    </select>
-    <input class="el-qty" type="number" value="1" min="0" oninput="recalcEstimate()" style="padding:8px;background:var(--bg);border:1px solid var(--line);border-radius:6px;color:var(--text);font-size:12px">
-    <input class="el-rate" type="number" value="0" min="0" oninput="recalcEstimate()" style="padding:8px;background:var(--bg);border:1px solid var(--line);border-radius:6px;color:var(--text);font-size:12px">
-    <input class="el-gst" type="number" value="18" min="0" oninput="recalcEstimate()" style="padding:8px;background:var(--bg);border:1px solid var(--line);border-radius:6px;color:var(--text);font-size:12px">
-    <button class="icon-btn" onclick="this.parentElement.remove();recalcEstimate()">✕</button>
-  `;
-  $('estLines').appendChild(wrap);
-}
-
-function pickEstimateItem(sel, lineId) {
-  const line = $(lineId);
-  const item = S.items.find(i => i.id === sel.value);
-  if (item) {
-    line.querySelector('.el-rate').value = item.rate;
-    line.querySelector('.el-gst').value = item.gst;
-  }
-  recalcEstimate();
-}
-
-function recalcEstimate() {
-  const lines = [];
-  document.querySelectorAll('#estLines > div').forEach(d => {
-    const sel = d.querySelector('.el-item');
-    const qty = Number(d.querySelector('.el-qty').value) || 0;
-    const rate = Number(d.querySelector('.el-rate').value) || 0;
-    const gst = Number(d.querySelector('.el-gst').value) || 0;
-    const itemName = sel.value ? (S.items.find(i => i.id === sel.value)?.name || 'Item') : 'Item';
-    lines.push({ itemId: sel.value, name: itemName, qty, rate, gst });
-  });
-  const custId = $('est_cust')?.value;
-  const cust = S.customers.find(c => c.id === custId);
-  const calc = calcInvoice(lines, cust?.stateCode || '');
-  if ($('e_sub')) $('e_sub').textContent = money(calc.subtotal);
-  if ($('e_tax')) $('e_tax').textContent = money(calc.taxTotal);
-  if ($('e_total')) $('e_total').textContent = money(calc.total);
+  addLine();
 }
 
 async function saveEstimate() {
-  const custId = $('est_cust').value;
-  const cust = S.customers.find(c => c.id === custId);
-  if (!cust) return toast('Select a customer');
+  const custId = $('inv_cust').value;
+  const cust = STATE.customers.find(c => c.id === custId);
+  if (!cust) return toast('Select a customer', 'err');
+  const lines = collectLines();
+  if (lines.length === 0) return toast('Add at least one line', 'err');
+  const t = computeTax(lines, cust.stateCode);
+  const num = STATE.config.estPrefix + String(STATE.config.estCounter).padStart(4, '0');
 
-  const lines = [];
-  document.querySelectorAll('#estLines > div').forEach(d => {
-    const sel = d.querySelector('.el-item');
-    const qty = Number(d.querySelector('.el-qty').value) || 0;
-    const rate = Number(d.querySelector('.el-rate').value) || 0;
-    if (qty <= 0) return;
-    const gst = Number(d.querySelector('.el-gst').value) || 0;
-    const itemName = sel.value ? (S.items.find(i => i.id === sel.value)?.name || 'Item') : 'Custom item';
-    lines.push({ itemId: sel.value, name: itemName, qty, rate, gst });
-  });
-
-  if (lines.length === 0) return toast('Add at least one line item');
-
-  const calc = calcInvoice(lines, cust.stateCode);
-  const estNum = S.settings.estPrefix + String(S.settings.estCounter).padStart(4, '0');
-
-  S.estimates.push({
-    id: uid(), number: estNum,
-    date: $('est_date').value,
-    customerId: cust.id, customerName: cust.name,
+  STATE.estimates.push({
+    id: uid(),
+    number: num,
+    date: $('inv_date').value,
+    customerId: cust.id,
+    customerName: cust.name,
     items: lines,
-    subtotal: calc.subtotal, cgst: calc.cgst, sgst: calc.sgst, igst: calc.igst,
-    total: calc.total,
-    converted: false, created: nowStr()
+    subtotal: t.subtotal,
+    cgst: t.cgst, sgst: t.sgst, igst: t.igst,
+    total: t.total,
+    converted: false,
+    created: nowStr()
   });
-
-  S.settings.estCounter++;
-  await saveState();
+  STATE.config.estCounter++;
+  await save();
   closeModal();
-  toast('Estimate ' + estNum + ' saved');
+  toast('Estimate ' + num + ' saved', 'ok');
   renderEstimates();
 }
 
 async function convertEstimate(id) {
-  const est = S.estimates.find(x => x.id === id);
+  const est = STATE.estimates.find(x => x.id === id);
   if (!est) return;
-  if (!confirm('Convert estimate ' + est.number + ' to invoice?')) return;
+  if (!confirm('Convert ' + est.number + ' to an invoice?')) return;
+  const cust = STATE.customers.find(c => c.id === est.customerId);
+  const t = computeTax(est.items, cust?.stateCode || '');
+  const num = STATE.config.invPrefix + String(STATE.config.invCounter).padStart(4, '0');
 
-  const cust = S.customers.find(c => c.id === est.customerId);
-  const calc = calcInvoice(est.items, cust?.stateCode || '');
-  const invNum = S.settings.invPrefix + String(S.settings.invCounter).padStart(4, '0');
-
-  S.invoices.push({
-    id: uid(), number: invNum,
+  STATE.invoices.push({
+    id: uid(),
+    number: num,
     date: today(), dueDate: today(),
-    customerId: est.customerId, customerName: est.customerName,
+    customerId: est.customerId,
+    customerName: est.customerName,
     customerGSTIN: cust?.gstin || '',
     customerStateCode: cust?.stateCode || '',
     items: est.items,
-    subtotal: calc.subtotal, cgst: calc.cgst, sgst: calc.sgst, igst: calc.igst,
-    total: calc.total,
+    subtotal: t.subtotal,
+    cgst: t.cgst, sgst: t.sgst, igst: t.igst,
+    total: t.total,
     notes: 'Converted from ' + est.number,
-    payments: [], created: nowStr()
+    payments: [],
+    created: nowStr()
   });
-
-  S.settings.invCounter++;
+  STATE.config.invCounter++;
   est.converted = true;
-  est.convertedTo = invNum;
-  await saveState();
-  toast('Converted to ' + invNum);
-  navigate('invoices');
+  est.convertedTo = num;
+  await save();
+  toast('Converted to ' + num, 'ok');
+  go('invoices');
 }
 
 async function deleteEstimate(id) {
   if (!confirm('Delete this estimate?')) return;
-  S.estimates = S.estimates.filter(e => e.id !== id);
-  await saveState();
+  STATE.estimates = STATE.estimates.filter(e => e.id !== id);
+  await save();
   toast('Estimate deleted');
   renderEstimates();
 }
 
-/* ══════════════════════════════════════════
+/* ═════════════════════════════════════════════════
    PAYMENTS
-   ══════════════════════════════════════════ */
+   ═════════════════════════════════════════════════ */
 function renderPayments() {
   $('topActions').innerHTML = '';
   const all = [];
-  S.invoices.forEach(inv => {
-    (inv.payments || []).forEach(p => {
-      all.push({ ...p, invoiceNum: inv.number, customer: inv.customerName, invoiceId: inv.id });
-    });
+  STATE.invoices.forEach(inv => {
+    (inv.payments || []).forEach(p => all.push({ ...p, invNum: inv.number, customer: inv.customerName }));
   });
   all.sort((a, b) => b.date.localeCompare(a.date));
   const total = all.reduce((s, p) => s + p.amount, 0);
 
-  $('content').innerHTML = `
-    <div class="kpis">
-      <div class="kpi g"><div class="lab">Total Received</div><div class="val">${money(total)}</div><div class="sub">${all.length} payments</div></div>
+  $('stage').innerHTML = `
+    <div class="grid kpi-grid">
+      <div class="kpi">
+        <div class="kpi-label"><span class="dot dot-emerald"></span>Total Received</div>
+        <div class="kpi-value emerald">${money(total)}</div>
+        <div class="kpi-note">${all.length} payment${all.length !== 1 ? 's' : ''}</div>
+      </div>
     </div>
-    <div class="card">
-      <h3>All Payments</h3>
+    <div class="panel">
+      <div class="panel-head"><h3>All Payments</h3></div>
       ${all.length === 0
-        ? `<div class="empty"><span class="big">◎</span>No payments recorded yet.</div>`
-        : `<div class="tbl-wrap"><table class="tbl">
-            <thead><tr><th>Date</th><th>Invoice</th><th>Customer</th><th>Method</th><th class="num">Amount</th></tr></thead>
-            <tbody>
-              ${all.map(p => `<tr>
-                <td class="sm">${p.date}</td>
-                <td class="name">${esc(p.invoiceNum)}</td>
-                <td>${esc(p.customer)}</td>
-                <td class="sm">${esc(p.method)}${p.reference ? ' · ' + esc(p.reference) : ''}</td>
-                <td class="num" style="color:var(--green)">${money(p.amount)}</td>
-              </tr>`).join('')}
-            </tbody>
-          </table></div>`}
+        ? `<div class="empty">
+             <div class="empty-icon">◎</div>
+             <div class="empty-title">No payments yet</div>
+             <div class="empty-note">Record payments from your invoices.</div>
+           </div>`
+        : `<div class="tbl-scroll">
+            <table class="data">
+              <thead>
+                <tr><th>Date</th><th>Invoice</th><th>Customer</th><th>Method</th><th class="num">Amount</th></tr>
+              </thead>
+              <tbody>
+                ${all.map(p => `<tr>
+                  <td class="sm">${p.date}</td>
+                  <td class="name">${esc(p.invNum)}</td>
+                  <td>${esc(p.customer)}</td>
+                  <td class="sm">${esc(p.method)}${p.reference ? ' · ' + esc(p.reference) : ''}</td>
+                  <td class="num emerald">${money(p.amount)}</td>
+                </tr>`).join('')}
+              </tbody>
+            </table>
+           </div>`}
     </div>
   `;
 }
 
-/* ══════════════════════════════════════════
+/* ═════════════════════════════════════════════════
    EXPENSES
-   ══════════════════════════════════════════ */
+   ═════════════════════════════════════════════════ */
 function renderExpenses() {
-  $('topActions').innerHTML = `<button class="act" onclick="newExpense()">+ New Expense</button>`;
-  const list = [...S.expenses].reverse();
-  const total = S.expenses.reduce((s, e) => s + Number(e.amount || 0), 0);
+  $('topActions').innerHTML = `<button class="cta" onclick="newExpense()">+ New Expense</button>`;
+  const list = [...STATE.expenses].reverse();
+  const total = STATE.expenses.reduce((s, e) => s + Number(e.amount || 0), 0);
 
-  $('content').innerHTML = `
-    <div class="kpis">
-      <div class="kpi a"><div class="lab">Total Expenses</div><div class="val">${money(total)}</div><div class="sub">${S.expenses.length} entries</div></div>
+  $('stage').innerHTML = `
+    <div class="grid kpi-grid">
+      <div class="kpi">
+        <div class="kpi-label"><span class="dot dot-amber"></span>Total Expenses</div>
+        <div class="kpi-value amber">${money(total)}</div>
+        <div class="kpi-note">${STATE.expenses.length} entries</div>
+      </div>
     </div>
-    <div class="card">
-      <h3>Expenses</h3>
+    <div class="panel">
+      <div class="panel-head"><h3>Expenses</h3></div>
       ${list.length === 0
-        ? `<div class="empty"><span class="big">▽</span>No expenses recorded yet.</div>`
-        : `<div class="tbl-wrap"><table class="tbl">
-            <thead><tr><th>Date</th><th>Category</th><th>Description</th><th class="num">Amount</th><th></th></tr></thead>
-            <tbody>
-              ${list.map(e => `<tr>
-                <td class="sm">${e.date}</td>
-                <td><span class="badge n">${esc(e.category)}</span></td>
-                <td>${esc(e.description || '—')}</td>
-                <td class="num">${money(e.amount)}</td>
-                <td><div class="row-act">
-                  <button class="icon-btn" onclick="deleteExpense('${e.id}')">✕</button>
-                </div></td>
-              </tr>`).join('')}
-            </tbody>
-          </table></div>`}
+        ? `<div class="empty">
+             <div class="empty-icon">▽</div>
+             <div class="empty-title">No expenses recorded</div>
+             <div class="empty-note">Track business spending here.</div>
+           </div>`
+        : `<div class="tbl-scroll">
+            <table class="data">
+              <thead>
+                <tr><th>Date</th><th>Category</th><th>Description</th><th class="num">Amount</th><th></th></tr>
+              </thead>
+              <tbody>
+                ${list.map(e => `<tr>
+                  <td class="sm">${e.date}</td>
+                  <td><span class="pill none">${esc(e.category)}</span></td>
+                  <td>${esc(e.description || '—')}</td>
+                  <td class="num">${money(e.amount)}</td>
+                  <td><div class="row-btns">
+                    <button class="row-btn danger" onclick="deleteExpense('${e.id}')">✕</button>
+                  </div></td>
+                </tr>`).join('')}
+              </tbody>
+            </table>
+           </div>`}
     </div>
   `;
 }
 
 function newExpense() {
-  const cats = ['Rent', 'Utilities', 'Salaries', 'Marketing', 'Travel', 'Office Supplies', 'Software', 'Professional Fees', 'Maintenance', 'Insurance', 'Other'];
+  const cats = ['Rent', 'Utilities', 'Salaries', 'Marketing', 'Travel', 'Software', 'Office Supplies', 'Professional Fees', 'Maintenance', 'Other'];
   openModal(`
     <div class="modal-head">
       <h3>New Expense</h3>
-      <button class="modal-close" onclick="closeModal()">×</button>
+      <button class="x" onclick="closeModal()">×</button>
     </div>
     <div class="modal-body">
-      <div class="form-grid">
-        <div class="field"><label>Date</label><input id="ex_date" type="date" value="${today()}"></div>
+      <div class="field-row">
+        <div class="field"><label>Date</label><input id="e_date" type="date" value="${today()}"></div>
         <div class="field"><label>Category</label>
-          <select id="ex_cat">${cats.map(c => `<option>${c}</option>`).join('')}</select>
+          <select id="e_cat">${cats.map(c => `<option>${c}</option>`).join('')}</select>
         </div>
-        <div class="field"><label>Amount</label><input id="ex_amt" type="number" step="0.01" min="0"></div>
-        <div class="field"><label>Description</label><input id="ex_desc" placeholder="What was it for?"></div>
       </div>
+      <div class="field"><label>Amount <span class="req">*</span></label><input id="e_amt" type="number" step="0.01" autofocus></div>
+      <div class="field"><label>Description</label><input id="e_desc" placeholder="What was it for?"></div>
     </div>
     <div class="modal-foot">
-      <button class="btn ghost" onclick="closeModal()">Cancel</button>
-      <button class="btn primary" onclick="saveExpense()">Save</button>
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveExpense()">Save</button>
     </div>
   `);
-  setTimeout(() => $('ex_amt').focus(), 100);
 }
 
 async function saveExpense() {
-  const amount = Number($('ex_amt').value) || 0;
-  if (amount <= 0) return toast('Enter a valid amount');
-  S.expenses.push({
+  const amt = Number($('e_amt').value) || 0;
+  if (amt <= 0) return toast('Enter a valid amount', 'err');
+  STATE.expenses.push({
     id: uid(),
-    date: $('ex_date').value,
-    category: $('ex_cat').value,
-    amount,
-    description: $('ex_desc').value.trim(),
+    date: $('e_date').value,
+    category: $('e_cat').value,
+    amount: amt,
+    description: $('e_desc').value.trim(),
     created: nowStr()
   });
-  await saveState();
+  await save();
   closeModal();
-  toast('Expense added');
+  toast('Expense added', 'ok');
   renderExpenses();
 }
 
 async function deleteExpense(id) {
   if (!confirm('Delete this expense?')) return;
-  S.expenses = S.expenses.filter(e => e.id !== id);
-  await saveState();
+  STATE.expenses = STATE.expenses.filter(e => e.id !== id);
+  await save();
   toast('Expense deleted');
   renderExpenses();
 }
 
-/* ══════════════════════════════════════════
+/* ═════════════════════════════════════════════════
    VENDOR BILLS
-   ══════════════════════════════════════════ */
+   ═════════════════════════════════════════════════ */
 function renderBills() {
-  $('topActions').innerHTML = `<button class="act" onclick="newBill()">+ New Bill</button>`;
-  const list = [...S.bills].reverse();
-  $('content').innerHTML = `
-    <div class="card">
-      <h3>Vendor Bills <span class="hint">${S.bills.length} total</span></h3>
+  $('topActions').innerHTML = `<button class="cta" onclick="newBill()">+ New Bill</button>`;
+  const list = [...STATE.bills].reverse();
+  $('stage').innerHTML = `
+    <div class="panel">
+      <div class="panel-head">
+        <h3>Vendor Bills</h3>
+        <span class="sub">${list.length} total</span>
+      </div>
       ${list.length === 0
-        ? `<div class="empty"><span class="big">▥</span>No vendor bills yet.</div>`
-        : `<div class="tbl-wrap"><table class="tbl">
-            <thead><tr><th>Bill #</th><th>Date</th><th>Vendor</th><th class="num">Total</th><th>Status</th><th></th></tr></thead>
-            <tbody>
-              ${list.map(b => `<tr>
-                <td class="name">${esc(b.number)}</td>
-                <td class="sm">${b.date}</td>
-                <td>${esc(b.vendorName)}</td>
-                <td class="num">${money(b.total)}</td>
-                <td><span class="badge ${b.paid ? 'g' : 'r'}">${b.paid ? 'paid' : 'unpaid'}</span></td>
-                <td><div class="row-act">
-                  ${!b.paid ? `<button class="icon-btn" onclick="markBillPaid('${b.id}')" title="Mark paid">✓</button>` : ''}
-                  <button class="icon-btn" onclick="deleteBill('${b.id}')">✕</button>
-                </div></td>
-              </tr>`).join('')}
-            </tbody>
-          </table></div>`}
+        ? `<div class="empty">
+             <div class="empty-icon">▥</div>
+             <div class="empty-title">No vendor bills yet</div>
+             <div class="empty-note">Record bills from your suppliers.</div>
+           </div>`
+        : `<div class="tbl-scroll">
+            <table class="data">
+              <thead>
+                <tr><th>Bill #</th><th>Vendor</th><th>Date</th><th class="num">Total</th><th>Status</th><th></th></tr>
+              </thead>
+              <tbody>
+                ${list.map(b => `<tr>
+                  <td class="name">${esc(b.number)}</td>
+                  <td>${esc(b.vendorName)}</td>
+                  <td class="sm">${b.date}</td>
+                  <td class="num">${money(b.total)}</td>
+                  <td>${pillFor(b.paid ? 'paid' : 'unpaid')}</td>
+                  <td>
+                    <div class="row-btns">
+                      ${!b.paid ? `<button class="row-btn" onclick="markBillPaid('${b.id}')" title="Mark paid">✓</button>` : ''}
+                      <button class="row-btn danger" onclick="deleteBill('${b.id}')">✕</button>
+                    </div>
+                  </td>
+                </tr>`).join('')}
+              </tbody>
+            </table>
+           </div>`}
     </div>
   `;
 }
 
 function newBill() {
-  if (S.vendors.length === 0) return toast('Add a vendor first');
-  const vendOpts = S.vendors.map(v => `<option value="${v.id}">${esc(v.name)}</option>`).join('');
+  if (STATE.vendors.length === 0) return toast('Add a vendor first', 'err');
+  const opts = STATE.vendors.map(v => `<option value="${v.id}">${esc(v.name)}</option>`).join('');
   openModal(`
     <div class="modal-head">
       <h3>New Vendor Bill</h3>
-      <button class="modal-close" onclick="closeModal()">×</button>
+      <button class="x" onclick="closeModal()">×</button>
     </div>
     <div class="modal-body">
-      <div class="form-grid">
-        <div class="field"><label>Vendor</label><select id="b_vend">${vendOpts}</select></div>
+      <div class="field-row">
+        <div class="field"><label>Vendor <span class="req">*</span></label><select id="b_vend">${opts}</select></div>
         <div class="field"><label>Date</label><input id="b_date" type="date" value="${today()}"></div>
-        <div class="field"><label>Bill Number</label><input id="b_num" placeholder="Vendor's bill #"></div>
-        <div class="field"><label>Amount</label><input id="b_amt" type="number" step="0.01" min="0"></div>
-        <div class="field" style="grid-column:1/-1"><label>Description</label><input id="b_desc"></div>
       </div>
+      <div class="field-row">
+        <div class="field"><label>Bill Number</label><input id="b_num" placeholder="Vendor's bill #"></div>
+        <div class="field"><label>Amount <span class="req">*</span></label><input id="b_amt" type="number" step="0.01"></div>
+      </div>
+      <div class="field"><label>Description</label><input id="b_desc"></div>
     </div>
     <div class="modal-foot">
-      <button class="btn ghost" onclick="closeModal()">Cancel</button>
-      <button class="btn primary" onclick="saveBill()">Save Bill</button>
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveBill()">Save</button>
     </div>
   `);
-  setTimeout(() => $('b_amt').focus(), 100);
 }
 
 async function saveBill() {
   const amt = Number($('b_amt').value) || 0;
-  if (amt <= 0) return toast('Enter a valid amount');
-  const vid = $('b_vend').value;
-  const v = S.vendors.find(x => x.id === vid);
-  S.bills.push({
+  if (amt <= 0) return toast('Enter a valid amount', 'err');
+  const v = STATE.vendors.find(x => x.id === $('b_vend').value);
+  STATE.bills.push({
     id: uid(),
     number: $('b_num').value.trim() || 'BILL-' + Date.now().toString(36).slice(-5).toUpperCase(),
     date: $('b_date').value,
-    vendorId: vid, vendorName: v?.name || '',
+    vendorId: v.id,
+    vendorName: v.name,
     description: $('b_desc').value.trim(),
     total: amt,
     paid: false,
     created: nowStr()
   });
-  await saveState();
+  await save();
   closeModal();
-  toast('Bill added');
+  toast('Bill added', 'ok');
   renderBills();
 }
 
 async function markBillPaid(id) {
-  const b = S.bills.find(x => x.id === id);
+  const b = STATE.bills.find(x => x.id === id);
   if (!b) return;
   b.paid = true;
   b.paidDate = today();
-  await saveState();
-  toast('Marked as paid');
+  await save();
+  toast('Marked as paid', 'ok');
   renderBills();
 }
 
 async function deleteBill(id) {
   if (!confirm('Delete this bill?')) return;
-  S.bills = S.bills.filter(b => b.id !== id);
-  await saveState();
+  STATE.bills = STATE.bills.filter(b => b.id !== id);
+  await save();
   toast('Bill deleted');
   renderBills();
 }
 
-/* ══════════════════════════════════════════
+/* ═════════════════════════════════════════════════
    REPORTS
-   ══════════════════════════════════════════ */
+   ═════════════════════════════════════════════════ */
 function renderReports() {
   $('topActions').innerHTML = '';
-  const totalSales = S.invoices.reduce((s, i) => s + i.total, 0);
-  const totalPurchases = S.bills.reduce((s, b) => s + b.total, 0);
-  const totalExpenses = S.expenses.reduce((s, e) => s + e.amount, 0);
-  const grossProfit = totalSales - totalPurchases;
-  const netProfit = grossProfit - totalExpenses;
+  const totalSales = STATE.invoices.reduce((s, i) => s + i.total, 0);
+  const totalPurchases = STATE.bills.reduce((s, b) => s + b.total, 0);
+  const totalExpenses = STATE.expenses.reduce((s, e) => s + e.amount, 0);
+  const gross = totalSales - totalPurchases;
+  const net = gross - totalExpenses;
+  const gstOut = STATE.invoices.reduce((s, i) => s + i.cgst + i.sgst + i.igst, 0);
 
-  const gstOut = S.invoices.reduce((s, i) => s + i.cgst + i.sgst + i.igst, 0);
-  const gstIn = 0; // simplified
-
-  const aging = { '0-30': 0, '31-60': 0, '61-90': 0, '90+': 0 };
-  S.invoices.forEach(inv => {
-    const bal = invoiceBalance(inv);
+  const aging = { a: 0, b: 0, c: 0, d: 0 };
+  STATE.invoices.forEach(inv => {
+    const bal = balance(inv);
     if (bal <= 0) return;
     const days = Math.ceil((new Date() - new Date(inv.date)) / 86400000);
-    if (days <= 30) aging['0-30'] += bal;
-    else if (days <= 60) aging['31-60'] += bal;
-    else if (days <= 90) aging['61-90'] += bal;
-    else aging['90+'] += bal;
+    if (days <= 30) aging.a += bal;
+    else if (days <= 60) aging.b += bal;
+    else if (days <= 90) aging.c += bal;
+    else aging.d += bal;
   });
 
-  $('content').innerHTML = `
-    <div class="card">
-      <h3>📊 Profit & Loss</h3>
+  $('stage').innerHTML = `
+    <div class="panel">
+      <div class="panel-head"><h3>Profit & Loss</h3></div>
       <div style="font-size:13px">
-        <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line)"><span>Revenue</span><span style="color:var(--green);font-weight:600">${money(totalSales)}</span></div>
-        <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line)"><span>Cost of Purchases</span><span style="color:var(--red)">− ${money(totalPurchases)}</span></div>
-        <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line);font-weight:600"><span>Gross Profit</span><span>${money(grossProfit)}</span></div>
-        <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line)"><span>Operating Expenses</span><span style="color:var(--red)">− ${money(totalExpenses)}</span></div>
-        <div style="display:flex;justify-content:space-between;padding:11px 0;font-weight:700;font-size:15px"><span>Net Profit</span><span style="color:${netProfit >= 0 ? 'var(--green)' : 'var(--red)'}">${money(netProfit)}</span></div>
+        <div class="totals-row"><span>Revenue</span><b class="emerald">${money(totalSales)}</b></div>
+        <div class="totals-row"><span>Cost of Purchases</span><b class="rose">− ${money(totalPurchases)}</b></div>
+        <div class="totals-row" style="border-top:1px solid var(--line);padding-top:10px;margin-top:6px"><span><b>Gross Profit</b></span><b>${money(gross)}</b></div>
+        <div class="totals-row"><span>Operating Expenses</span><b class="rose">− ${money(totalExpenses)}</b></div>
+        <div class="totals-grand"><span>Net Profit</span><span class="${net >= 0 ? 'emerald' : 'rose'}">${money(net)}</span></div>
       </div>
     </div>
 
-    <div class="card">
-      <h3>📈 Receivables Aging</h3>
-      <div class="tbl-wrap"><table class="tbl" style="min-width:auto">
-        <thead><tr><th>Age</th><th class="num">Amount</th></tr></thead>
-        <tbody>
-          <tr><td>0–30 days</td><td class="num" style="color:var(--green)">${money(aging['0-30'])}</td></tr>
-          <tr><td>31–60 days</td><td class="num" style="color:var(--amber)">${money(aging['31-60'])}</td></tr>
-          <tr><td>61–90 days</td><td class="num" style="color:var(--red)">${money(aging['61-90'])}</td></tr>
-          <tr><td>90+ days</td><td class="num" style="color:var(--red)">${money(aging['90+'])}</td></tr>
-        </tbody>
-      </table></div>
-    </div>
-
-    <div class="card">
-      <h3>🧾 GST Summary</h3>
-      <div style="font-size:13px">
-        <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line)"><span>GST Collected (Output)</span><span>${money(gstOut)}</span></div>
-        <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line)"><span>GST Paid (Input)</span><span>${money(gstIn)}</span></div>
-        <div style="display:flex;justify-content:space-between;padding:11px 0;font-weight:700"><span>Net GST Payable</span><span style="color:var(--amber)">${money(gstOut - gstIn)}</span></div>
+    <div class="panel">
+      <div class="panel-head"><h3>Receivables Aging</h3></div>
+      <div class="tbl-scroll" style="margin:0">
+        <table class="data" style="min-width:auto">
+          <thead><tr><th>Age Bucket</th><th class="num">Amount</th></tr></thead>
+          <tbody>
+            <tr><td>0 – 30 days</td><td class="num emerald">${money(aging.a)}</td></tr>
+            <tr><td>31 – 60 days</td><td class="num amber">${money(aging.b)}</td></tr>
+            <tr><td>61 – 90 days</td><td class="num rose">${money(aging.c)}</td></tr>
+            <tr><td>90+ days</td><td class="num rose">${money(aging.d)}</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
-    <div class="card">
-      <h3>📤 Export</h3>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn ghost" onclick="exportInvoicesCSV()">📊 Invoices CSV</button>
-        <button class="btn ghost" onclick="exportGSTR1()">🧾 GSTR-1 CSV</button>
-        <button class="btn ghost" onclick="exportAllJSON()">💾 Full Backup</button>
+    <div class="panel">
+      <div class="panel-head"><h3>GST Summary</h3></div>
+      <div style="font-size:13px">
+        <div class="totals-row"><span>GST Collected (Output)</span><b>${money(gstOut)}</b></div>
+        <div class="totals-row"><span>GST Paid (Input)</span><b>${money(0)}</b></div>
+        <div class="totals-grand"><span>Net GST Payable</span><span class="amber">${money(gstOut)}</span></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h3>Export</h3></div>
+      <div class="btn-row" style="justify-content:flex-start">
+        <button class="btn btn-ghost" onclick="exportCSV()">📊 Invoices CSV</button>
+        <button class="btn btn-ghost" onclick="exportGST()">🧾 GSTR-1 CSV</button>
+        <button class="btn btn-ghost" onclick="exportBackup()">💾 Full Backup</button>
       </div>
     </div>
   `;
 }
 
-function exportInvoicesCSV() {
+function exportCSV() {
   let csv = 'Invoice,Date,Customer,Subtotal,CGST,SGST,IGST,Total,Status\n';
-  S.invoices.forEach(i => {
-    csv += `"${i.number}","${i.date}","${i.customerName}",${i.subtotal.toFixed(2)},${i.cgst.toFixed(2)},${i.sgst.toFixed(2)},${i.igst.toFixed(2)},${i.total.toFixed(2)},"${invoiceStatus(i)}"\n`;
+  STATE.invoices.forEach(i => {
+    csv += `"${i.number}","${i.date}","${i.customerName}",${i.subtotal.toFixed(2)},${i.cgst.toFixed(2)},${i.sgst.toFixed(2)},${i.igst.toFixed(2)},${i.total.toFixed(2)},"${invStatus(i)}"\n`;
   });
-  download(new Blob([csv], { type: 'text/csv' }), 'invoices_' + today() + '.csv');
-  toast('CSV exported');
+  dl(new Blob([csv], { type: 'text/csv' }), 'invoices_' + today() + '.csv');
+  toast('CSV exported', 'ok');
 }
 
-function exportGSTR1() {
-  const taxInvoices = S.invoices.filter(i => i.cgst || i.sgst || i.igst);
+function exportGST() {
   let csv = 'GSTIN,Invoice,Date,Customer,Taxable,CGST,SGST,IGST,Total\n';
-  taxInvoices.forEach(i => {
-    csv += `"${S.settings.gstin}","${i.number}","${i.date}","${i.customerName}",${i.subtotal.toFixed(2)},${i.cgst.toFixed(2)},${i.sgst.toFixed(2)},${i.igst.toFixed(2)},${i.total.toFixed(2)}\n`;
+  STATE.invoices.filter(i => i.cgst || i.sgst || i.igst).forEach(i => {
+    csv += `"${STATE.config.gstin}","${i.number}","${i.date}","${i.customerName}",${i.subtotal.toFixed(2)},${i.cgst.toFixed(2)},${i.sgst.toFixed(2)},${i.igst.toFixed(2)},${i.total.toFixed(2)}\n`;
   });
-  download(new Blob([csv], { type: 'text/csv' }), 'GSTR1_' + today() + '.csv');
-  toast('GSTR-1 exported');
+  dl(new Blob([csv], { type: 'text/csv' }), 'GSTR1_' + today() + '.csv');
+  toast('GSTR-1 exported', 'ok');
 }
 
-function exportAllJSON() {
-  download(new Blob([JSON.stringify(S, null, 2)], { type: 'application/json' }), 'ledger_backup_' + today() + '.json');
-  toast('Backup downloaded');
+function exportBackup() {
+  dl(new Blob([JSON.stringify(STATE, null, 2)], { type: 'application/json' }), 'aurora_backup_' + today() + '.json');
+  toast('Backup downloaded', 'ok');
 }
 
-function download(blob, name) {
+function dl(blob, name) {
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = name;
@@ -1780,69 +2251,75 @@ function download(blob, name) {
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
-/* ══════════════════════════════════════════
+/* ═════════════════════════════════════════════════
    SETTINGS
-   ══════════════════════════════════════════ */
+   ═════════════════════════════════════════════════ */
 function renderSettings() {
   $('topActions').innerHTML = '';
-  const s = S.settings;
-  $('content').innerHTML = `
-    <div class="card">
-      <h3>Business Details</h3>
-      <div class="form-grid">
-        <div class="field"><label>Business Name</label><input id="s_name" value="${esc(s.name)}"></div>
-        <div class="field"><label>GSTIN</label><input id="s_gstin" value="${esc(s.gstin)}"></div>
-        <div class="field"><label>Phone</label><input id="s_phone" value="${esc(s.phone)}"></div>
-        <div class="field"><label>Email</label><input id="s_email" value="${esc(s.email)}"></div>
-        <div class="field" style="grid-column:1/-1"><label>Address</label><input id="s_addr" value="${esc(s.address)}"></div>
-        <div class="field"><label>State Code (for GST)</label><input id="s_state" value="${esc(s.stateCode)}" placeholder="e.g. 27"></div>
-        <div class="field"><label>Currency Symbol</label><input id="s_curr" value="${esc(s.currency)}"></div>
+  const c = STATE.config;
+  $('stage').innerHTML = `
+    <div class="panel">
+      <div class="panel-head"><h3>Business Details</h3></div>
+      <div class="field-row">
+        <div class="field"><label>Business Name</label><input id="s_name" value="${esc(c.bizName)}"></div>
+        <div class="field"><label>GSTIN</label><input id="s_gstin" value="${esc(c.gstin)}"></div>
       </div>
-      <div style="margin-top:14px;display:flex;gap:8px">
-        <button class="btn primary" onclick="saveSettings()">Save Settings</button>
+      <div class="field-row">
+        <div class="field"><label>Phone</label><input id="s_phone" value="${esc(c.phone)}"></div>
+        <div class="field"><label>Email</label><input id="s_email" value="${esc(c.email)}"></div>
       </div>
-    </div>
-
-    <div class="card">
-      <h3>Invoice Numbering</h3>
-      <div class="form-grid">
-        <div class="field"><label>Invoice Prefix</label><input id="s_invpre" value="${esc(s.invPrefix)}"></div>
-        <div class="field"><label>Next Invoice #</label><input id="s_invcnt" type="number" value="${s.invCounter}"></div>
-        <div class="field"><label>Estimate Prefix</label><input id="s_estpre" value="${esc(s.estPrefix)}"></div>
-        <div class="field"><label>Next Estimate #</label><input id="s_estcnt" type="number" value="${s.estCounter}"></div>
+      <div class="field"><label>Address</label><textarea id="s_addr">${esc(c.address)}</textarea></div>
+      <div class="field-row">
+        <div class="field"><label>State Code</label><input id="s_state" value="${esc(c.stateCode)}" placeholder="e.g. 27"></div>
+        <div class="field"><label>Currency Symbol</label><input id="s_curr" value="${esc(c.currency)}"></div>
       </div>
-      <div style="margin-top:14px">
-        <button class="btn primary" onclick="saveSettings()">Save</button>
+      <div class="btn-row" style="justify-content:flex-start">
+        <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
       </div>
     </div>
 
-    <div class="card">
-      <h3>Data</h3>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn ghost" onclick="exportAllJSON()">💾 Export Backup</button>
-        <button class="btn ghost" onclick="triggerImport()">📥 Import Backup</button>
-        <button class="btn danger" onclick="resetAll()">🗑 Delete All Data</button>
+    <div class="panel">
+      <div class="panel-head"><h3>Numbering</h3></div>
+      <div class="field-row">
+        <div class="field"><label>Invoice Prefix</label><input id="s_invpre" value="${esc(c.invPrefix)}"></div>
+        <div class="field"><label>Next Invoice #</label><input id="s_invcnt" type="number" value="${c.invCounter}"></div>
       </div>
-      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importBackup(event)">
-      <p style="margin-top:12px;font-size:11px;color:var(--dim);line-height:1.6">
-        All data is stored privately in your browser. Nothing is sent to any server. Export regularly to back up.
+      <div class="field-row">
+        <div class="field"><label>Estimate Prefix</label><input id="s_estpre" value="${esc(c.estPrefix)}"></div>
+        <div class="field"><label>Next Estimate #</label><input id="s_estcnt" type="number" value="${c.estCounter}"></div>
+      </div>
+      <div class="btn-row" style="justify-content:flex-start">
+        <button class="btn btn-primary" onclick="saveSettings()">Save</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h3>Data Management</h3></div>
+      <div class="btn-row" style="justify-content:flex-start">
+        <button class="btn btn-ghost" onclick="exportBackup()">💾 Export Backup</button>
+        <button class="btn btn-ghost" onclick="$('importFile').click()">📥 Import Backup</button>
+        <button class="btn btn-danger" onclick="resetAll()">🗑 Reset All Data</button>
+      </div>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importFile(event)">
+      <p style="margin-top:14px;font-size:11px;color:var(--text-3);line-height:1.6">
+        All data lives privately in your browser. Nothing leaves your device. Export regularly for safekeeping.
       </p>
     </div>
 
-    <div class="card">
-      <h3>About</h3>
-      <p style="font-size:12px;color:var(--dim);line-height:1.7">
-        <b style="color:var(--text)">Ledger</b> — a simple, offline business manager.<br>
-        Handles invoices, estimates, payments, expenses, customers, vendors, items, and reports.<br>
-        No account. No server. No ads. Everything stays on your device.
+    <div class="panel">
+      <div class="panel-head"><h3>About Aurora</h3></div>
+      <p style="font-size:12px;color:var(--text-2);line-height:1.7">
+        <b style="color:var(--text)">Aurora Business Suite</b> — a lightweight, offline-first manager for small businesses.<br>
+        Handles invoices, estimates, payments, expenses, vendor bills, customers, vendors, items, and reports.<br>
+        No account. No server. No ads. No watermarks.
       </p>
     </div>
   `;
 }
 
 async function saveSettings() {
-  Object.assign(S.settings, {
-    name: $('s_name').value.trim() || 'My Business',
+  Object.assign(STATE.config, {
+    bizName: $('s_name').value.trim() || 'My Business',
     gstin: $('s_gstin').value.trim(),
     phone: $('s_phone').value.trim(),
     email: $('s_email').value.trim(),
@@ -1854,93 +2331,58 @@ async function saveSettings() {
     estPrefix: $('s_estpre').value.trim() || 'EST-',
     estCounter: Number($('s_estcnt').value) || 1
   });
-  await saveState();
-  toast('Settings saved');
+  await save();
+  toast('Settings saved', 'ok');
 }
 
-function triggerImport() {
-  $('importFile').click();
-}
-
-async function importBackup(e) {
+async function importFile(e) {
   const f = e.target.files[0];
   if (!f) return;
   try {
-    const text = await f.text();
-    const data = JSON.parse(text);
-    if (!confirm('This will replace all current data. Continue?')) return;
-    Object.assign(S, data);
-    await saveState();
-    toast('Backup imported');
-    navigate('dashboard');
-  } catch (err) {
-    toast('Invalid backup file');
-  }
+    const data = JSON.parse(await f.text());
+    if (!confirm('Replace all current data with this backup?')) return;
+    Object.assign(STATE, data);
+    await save();
+    toast('Backup restored', 'ok');
+    go('dashboard');
+  } catch { toast('Invalid backup file', 'err'); }
 }
 
 async function resetAll() {
-  if (!confirm('Delete ALL data permanently? This cannot be undone.')) return;
+  if (!confirm('Delete ALL data? This cannot be undone.')) return;
   if (!confirm('Are you absolutely sure?')) return;
-  S.customers = []; S.vendors = []; S.items = [];
-  S.invoices = []; S.estimates = []; S.payments = [];
-  S.expenses = []; S.bills = [];
-  S.settings = {
-    name: 'My Business', gstin: '', address: '', phone: '', email: '',
-    stateCode: '27', invPrefix: 'INV-', invCounter: 1,
-    estPrefix: 'EST-', estCounter: 1, currency: '₹'
+  Object.keys(STATE).forEach(k => {
+    if (Array.isArray(STATE[k])) STATE[k] = [];
+  });
+  STATE.config = {
+    bizName: 'My Business', gstin: '', address: '', phone: '', email: '',
+    stateCode: '27', currency: '₹', invPrefix: 'INV-', invCounter: 1,
+    estPrefix: 'EST-', estCounter: 1
   };
-  await saveState();
-  toast('All data cleared');
-  navigate('dashboard');
+  await save();
+  toast('All data cleared', 'ok');
+  go('dashboard');
 }
 
-/* ══════════════════════════════════════════
-   BOOT
-   ══════════════════════════════════════════ */
-(async function init() {
-  try {
-    await loadState();
-  } catch (e) {
-    console.warn('IndexedDB unavailable, using memory only', e);
-  }
-  navigate('dashboard');
-})();
+/* ═════════════════════════════════════════════════
+   EXPOSE + BOOT
+   ═════════════════════════════════════════════════ */
+Object.assign(window, {
+  editCustomer, saveCustomer, deleteCustomer,
+  editVendor, saveVendor, deleteVendor,
+  editItem, saveItem, deleteItem,
+  newInvoice, addLine, pickItem, recalc, saveInvoice, viewInvoice, deleteInvoice, recordPayment, savePayment, pdfInvoice, thermal,
+  newEstimate, saveEstimate, convertEstimate, deleteEstimate,
+  newExpense, saveExpense, deleteExpense,
+  newBill, saveBill, markBillPaid, deleteBill,
+  saveSettings, importFile, resetAll,
+  exportCSV, exportGST, exportBackup
+});
 
-/* Expose handlers */
-window.navigate = navigate;
-window.newInvoice = newInvoice;
-window.addLineItem = addLineItem;
-window.pickItem = pickItem;
-window.recalcInvoice = recalcInvoice;
-window.saveInvoice = saveInvoice;
-window.viewInvoice = viewInvoice;
-window.deleteInvoice = deleteInvoice;
-window.recordPayment = recordPayment;
-window.savePayment = savePayment;
-window.downloadInvoicePDF = downloadInvoicePDF;
-window.printThermal = printThermal;
-window.printThermalWindow = printThermalWindow;
-window.newEstimate = newEstimate;
-window.addEstimateLine = addEstimateLine;
-window.pickEstimateItem = pickEstimateItem;
-window.recalcEstimate = recalcEstimate;
-window.saveEstimate = saveEstimate;
-window.convertEstimate = convertEstimate;
-window.deleteEstimate = deleteEstimate;
-window.newExpense = newExpense;
-window.saveExpense = saveExpense;
-window.deleteExpense = deleteExpense;
-window.newBill = newBill;
-window.saveBill = saveBill;
-window.markBillPaid = markBillPaid;
-window.deleteBill = deleteBill;
-window.saveSettings = saveSettings;
-window.triggerImport = triggerImport;
-window.importBackup = importBackup;
-window.resetAll = resetAll;
-window.exportInvoicesCSV = exportInvoicesCSV;
-window.exportGSTR1 = exportGSTR1;
-window.exportAllJSON = exportAllJSON;
+(async function boot() {
+  await load();
+  go('dashboard');
+})();
 </script>
 </body>
 </html>
