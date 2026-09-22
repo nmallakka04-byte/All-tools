@@ -4,11 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#08090f">
-<title>Aurora AI — Business Suite</title>
+<title>JanaA/C — Business Suite</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf@2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable@3.8.2/jspdf.plugin.autotable.min.js"></script>
-<script src="https://unpkg.com/tesseract.js@v6.0.0/dist/tesseract.min.js"></script>
 <style>
 :root {
   --bg-0: #08090f; --bg-1: #0d0f18; --bg-2: #131623; --bg-3: #1c2030;
@@ -243,8 +242,6 @@ table.data .sm { font-size: 11px; color: var(--text-3); margin-top: 2px; font-we
 }
 .overlay { position: fixed; inset: 0; background: rgba(4,5,10,.5); z-index: 55; opacity: 0; pointer-events: none; transition: opacity .3s }
 .overlay.on { opacity: 1; pointer-events: auto }
-
-/* AI-specific */
 .ai-insight {
   display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px;
   background: rgba(8,9,15,.5); border: 1px solid var(--line);
@@ -261,7 +258,6 @@ table.data .sm { font-size: 11px; color: var(--text-3); margin-top: 2px; font-we
 .ai-insight .body .title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 3px }
 .ai-insight .body .desc { font-size: 12px; color: var(--text-2); line-height: 1.5 }
 .ai-insight .body .meta { font-size: 10px; color: var(--text-3); margin-top: 4px; letter-spacing: .3px }
-
 .ai-loading {
   display: flex; align-items: center; gap: 10px; padding: 30px;
   justify-content: center; color: var(--cyan); font-size: 13px;
@@ -272,7 +268,6 @@ table.data .sm { font-size: 11px; color: var(--text-3); margin-top: 2px; font-we
   animation: spin .7s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg) } }
-
 .ai-suggest {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 8px 14px; background: rgba(34,211,238,.08);
@@ -281,7 +276,6 @@ table.data .sm { font-size: 11px; color: var(--text-3); margin-top: 2px; font-we
   transition: all .18s; margin: 4px 4px 0 0;
 }
 .ai-suggest:hover { background: rgba(34,211,238,.15); border-style: solid }
-
 .score-ring {
   display: inline-flex; align-items: center; justify-content: center;
   width: 56px; height: 56px; border-radius: 50%;
@@ -293,6 +287,19 @@ table.data .sm { font-size: 11px; color: var(--text-3); margin-top: 2px; font-we
   background: var(--bg-1); border-radius: 50%;
   display: grid; place-items: center; font-size: 13px; font-weight: 800; color: var(--text);
 }
+@media print {
+  body * { visibility: hidden !important; }
+  .thermal, .thermal * { visibility: visible !important; }
+  .thermal {
+    position: absolute; left: 0; top: 0;
+    width: 80mm; padding: 0; margin: 0;
+    box-shadow: none;
+  }
+  .modal-bg { background: #fff !important; display: block !important; }
+  .modal { border: none !important; box-shadow: none !important; max-width: 100% !important; background: #fff !important; }
+  .modal-head, .modal-foot { display: none !important; }
+  .modal-body { padding: 0 !important; background: #fff !important; }
+}
 </style>
 </head>
 <body>
@@ -302,8 +309,8 @@ table.data .sm { font-size: 11px; color: var(--text-3); margin-top: 2px; font-we
     <div class="brand">
       <div class="brand-mark">◆</div>
       <div class="brand-text">
-        <h1>Aurora AI</h1>
-        <p>Business Suite</p>
+        <h1>JanaA/C</h1>
+        <p>Accounts Suite</p>
       </div>
     </div>
 
@@ -329,7 +336,7 @@ table.data .sm { font-size: 11px; color: var(--text-3); margin-top: 2px; font-we
     <button class="nav-link" data-nav="reports"><span class="ic">▲</span>Reports</button>
     <button class="nav-link" data-nav="settings"><span class="ic">⚙</span>Settings</button>
 
-    <div class="side-foot">AI · Offline · Private</div>
+    <div class="side-foot">JanaA/C · Offline · Private</div>
   </aside>
 
   <main class="main">
@@ -353,7 +360,7 @@ table.data .sm { font-size: 11px; color: var(--text-3); margin-top: 2px; font-we
 
 <script>
 /* ═════════════════════════════════════════════════
-   AURORA AI — Business Suite
+   JanaA/C — Business Suite with AI
    ═════════════════════════════════════════════════ */
 
 const STATE = {
@@ -370,7 +377,6 @@ const STATE = {
    AI ENGINE — Pure JS, runs locally
    ═════════════════════════════════════════════════ */
 const AI = {
-  // 1. Fuzzy string similarity (Levenshtein-based)
   similarity(a, b) {
     a = (a || '').toLowerCase().trim();
     b = (b || '').toLowerCase().trim();
@@ -387,9 +393,7 @@ const AI = {
         else if (j === 0) costs[j] = i;
         else {
           const cur = costs[j];
-          costs[j] = shorter[i-1] === longer[j-1]
-            ? last
-            : 1 + Math.min(last, costs[j-1], costs[j]);
+          costs[j] = shorter[i-1] === longer[j-1] ? last : 1 + Math.min(last, costs[j-1], costs[j]);
           last = cur;
         }
       }
@@ -397,7 +401,6 @@ const AI = {
     return 1 - costs[longer.length] / longer.length;
   },
 
-  // 2. Linear regression forecast
   forecast(values, periods = 3) {
     const n = values.length;
     if (n < 2) return Array(periods).fill(values[0] || 0);
@@ -415,7 +418,6 @@ const AI = {
     return result;
   },
 
-  // 3. Anomaly detection (Z-score)
   detectAnomalies(values, threshold = 2) {
     if (values.length < 3) return [];
     const mean = values.reduce((a, b) => a + b, 0) / values.length;
@@ -428,7 +430,6 @@ const AI = {
     })).filter(x => x.isAnomaly);
   },
 
-  // 4. Auto-categorize expense based on description keywords
   categorizeExpense(description) {
     const text = (description || '').toLowerCase();
     const rules = {
@@ -449,7 +450,6 @@ const AI = {
     return { category: 'Other', confidence: 0.3 };
   },
 
-  // 5. Predict next payment amount from customer history
   predictCustomerValue(customerId, invoices) {
     const custInvoices = invoices.filter(i => i.customerId === customerId);
     if (!custInvoices.length) return { avg: 0, total: 0, count: 0 };
@@ -458,7 +458,6 @@ const AI = {
     return { avg: total / amounts.length, total, count: amounts.length, last: amounts[amounts.length - 1] };
   },
 
-  // 6. Churn risk — customers who haven't ordered recently
   churnRisk(thresholdDays = 60) {
     const now = Date.now();
     const risky = [];
@@ -475,7 +474,6 @@ const AI = {
     return risky.sort((a, b) => b.totalSpent - a.totalSpent);
   },
 
-  // 7. Duplicate detection
   findDuplicates() {
     const dupCustomers = [];
     for (let i = 0; i < STATE.customers.length; i++) {
@@ -498,13 +496,11 @@ const AI = {
     return { customers: dupCustomers, items: dupItems };
   },
 
-  // 8. Natural language invoice parser
   parseNaturalInvoice(text) {
     if (!text) return null;
     const t = text.trim();
     const result = { customer: null, items: [], date: null, notes: '' };
 
-    // Match customer name (look for existing customer substring)
     for (const c of STATE.customers) {
       if (t.toLowerCase().includes(c.name.toLowerCase())) {
         result.customer = c;
@@ -512,17 +508,13 @@ const AI = {
       }
     }
 
-    // Match items with pattern "N x ItemName at Rate" or "N ItemName @ Rate"
     const itemRegex = /(\d+(?:\.\d+)?)\s*(?:x|×|of|units? of)?\s+([A-Za-z][A-Za-z0-9 _-]{1,40}?)\s*(?:at|@|for|rate)\s*(?:₹|rs\.?|inr|\$)?\s*(\d+(?:\.\d+)?)/gi;
     let match;
     while ((match = itemRegex.exec(t)) !== null) {
       const qty = parseFloat(match[1]);
       const name = match[2].trim();
       const rate = parseFloat(match[3]);
-      // Try to find matching item in catalog
-      const foundItem = STATE.items.find(i =>
-        AI.similarity(i.name, name) > 0.7
-      );
+      const foundItem = STATE.items.find(i => AI.similarity(i.name, name) > 0.7);
       result.items.push({
         itemId: foundItem?.id || '',
         name: foundItem?.name || name,
@@ -531,7 +523,6 @@ const AI = {
       });
     }
 
-    // Match date
     const dateRegex = /(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/;
     const dm = t.match(dateRegex);
     if (dm) {
@@ -543,7 +534,6 @@ const AI = {
     return result;
   },
 
-  // 9. Smart reorder recommendations based on stock + velocity
   reorderRecommendations() {
     const recs = [];
     STATE.items.forEach(it => {
@@ -560,7 +550,6 @@ const AI = {
     return recs.sort((a, b) => b.velocity - a.velocity);
   },
 
-  // 10. Payment collection priority — which customers to chase
   paymentPriorities() {
     const now = Date.now();
     const items = [];
@@ -584,7 +573,7 @@ const AI = {
 let _db = null;
 function idb() {
   return new Promise((ok, err) => {
-    const r = indexedDB.open('aurora_ai', 1);
+    const r = indexedDB.open('janaac', 1);
     r.onupgradeneeded = e => e.target.result.createObjectStore('s');
     r.onsuccess = e => ok(e.target.result);
     r.onerror = e => err(e.target.error);
@@ -721,7 +710,6 @@ function renderDashboard() {
   const purchases = STATE.bills.reduce((s, b) => s + b.total, 0);
   const net = totalSales - purchases - expenses;
 
-  // AI forecast for next month
   const monthly = [];
   for (let i = 5; i >= 0; i--) {
     const d = new Date(); d.setMonth(d.getMonth() - i);
@@ -848,7 +836,7 @@ function renderDashboard() {
   if (!ctx) return;
   if (dashChart) dashChart.destroy();
 
-  const months = [], values = [], forecast = [];
+  const months = [], values = [];
   for (let i = 5; i >= 0; i--) {
     const d = new Date(); d.setMonth(d.getMonth() - i);
     months.push(d.toLocaleString('en', { month: 'short' }));
@@ -958,7 +946,6 @@ function runAllAI() {
   setTimeout(() => {
     const out = [];
 
-    // 1. Payment Priority
     const priorities = AI.paymentPriorities().slice(0, 5);
     if (priorities.length) {
       out.push(`
@@ -981,7 +968,6 @@ function runAllAI() {
       `);
     }
 
-    // 2. Churn Risk
     const churn = AI.churnRisk(60);
     if (churn.length) {
       out.push(`
@@ -1004,7 +990,6 @@ function runAllAI() {
       `);
     }
 
-    // 3. Anomaly Detection
     const amounts = STATE.expenses.map(e => Number(e.amount) || 0);
     const anomalies = AI.detectAnomalies(amounts, 1.8);
     if (anomalies.length) {
@@ -1031,7 +1016,6 @@ function runAllAI() {
       `);
     }
 
-    // 4. Duplicates
     const dups = AI.findDuplicates();
     if (dups.customers.length || dups.items.length) {
       out.push(`
@@ -1063,7 +1047,6 @@ function runAllAI() {
       `);
     }
 
-    // 5. Reorder recommendations
     const reorders = AI.reorderRecommendations();
     if (reorders.length) {
       out.push(`
@@ -1086,7 +1069,6 @@ function runAllAI() {
       `);
     }
 
-    // 6. Top customers
     const customerValues = STATE.customers.map(c => ({
       c, ...AI.predictCustomerValue(c.id, STATE.invoices)
     })).filter(x => x.total > 0).sort((a, b) => b.total - a.total).slice(0, 5);
@@ -1112,7 +1094,6 @@ function runAllAI() {
       `);
     }
 
-    // 7. Expense auto-categorize helper
     out.push(`
       <div class="panel ai-panel">
         <div class="panel-head">
@@ -1126,8 +1107,8 @@ function runAllAI() {
       </div>
     `);
 
-    if (out.length === 0) {
-      out.push(`
+    if (out.length === 1) {
+      out.unshift(`
         <div class="panel">
           <div class="empty">
             <div class="empty-icon">✦</div>
@@ -2100,7 +2081,7 @@ function renderExpenses() {
             <table class="data">
               <thead><tr><th>Date</th><th>Category</th><th>Description</th><th class="num">Amount</th><th></th></tr></thead>
               <tbody>
-                ${list.map((e, idx) => {
+                ${list.map(e => {
                   const isAnomaly = anomalies.some(a => STATE.expenses[a.index]?.id === e.id);
                   return `<tr>
                     <td class="sm">${e.date}</td>
@@ -2370,7 +2351,7 @@ function exportGST() {
 }
 
 function exportBackup() {
-  dl(new Blob([JSON.stringify(STATE, null, 2)], { type: 'application/json' }), 'aurora_ai_backup_' + today() + '.json');
+  dl(new Blob([JSON.stringify(STATE, null, 2)], { type: 'application/json' }), 'janaac_backup_' + today() + '.json');
   toast('Backup downloaded', 'ok');
 }
 
@@ -2435,9 +2416,9 @@ function renderSettings() {
       </p>
     </div>
     <div class="panel">
-      <div class="panel-head"><h3>About Aurora AI</h3></div>
+      <div class="panel-head"><h3>About JanaA/C</h3></div>
       <p style="font-size:12px;color:var(--text-2);line-height:1.7">
-        <b style="color:var(--text)">Aurora AI Business Suite</b> — offline-first manager with 10 built-in AI features.<br><br>
+        <b style="color:var(--text)">JanaA/C Business Suite</b> — offline-first manager with 10 built-in AI features.<br><br>
         <b style="color:var(--cyan)">✦ AI Features:</b><br>
         1. Sales forecasting (linear regression)<br>
         2. Payment collection priority<br>
